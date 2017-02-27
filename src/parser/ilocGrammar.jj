@@ -1,0 +1,843 @@
+//********************************************************************
+//* Title: ilocGrammar.jj
+//*
+//* Description: This is the JavaCC specification of the Iloc grammar
+//*
+//* Author: Steve Carr
+//*
+//********************************************************************
+
+ 
+options {
+  JDK_VERSION = "1.5";
+}
+PARSER_BEGIN(IlocParser)
+package parser;
+
+import java.util.*;
+import iloc.*;
+
+public class IlocParser {
+
+}
+PARSER_END(IlocParser)
+
+SKIP :
+{
+ 	" "
+|	"\t"
+|	"\r"
+|	"\n"
+}
+
+TOKEN : /* KEYWORDS */
+{
+  < ADD: "add" >
+| < ADDI: "addI" >
+| < AND: "and" >
+| < C2C: "c2c">
+| < C2I: "c2i">
+| < CALL: "call" >
+| < CBR: "cbr" >
+| < CBRNE: "cbrne" >
+| < CBR_LT: "cbr_LT">
+| < CBR_LE: "cbr_LE">
+| < CBR_EQ: "cbr_EQ">
+| < CBR_NE: "cbr_NE">
+| < CBR_GT: "cbr_GT">
+| < CBR_GE: "cbr_GE">
+| < CLOADAI: "cloadAI" >
+| < CLOADAO: "cloadAO" >
+| < CLOAD: "cload" >
+| < CMP_LT: "cmp_LT">
+| < CMP_LE: "cmp_LE">
+| < CMP_EQ: "cmp_EQ">
+| < CMP_NE: "cmp_NE">
+| < CMP_GT: "cmp_GT">
+| < CMP_GE: "cmp_GE">
+| < COMP: "comp" >
+| < CREAD: "cread" >
+| < CSTOREAI: "cstoreAI" >
+| < CSTOREAO: "cstoreAO" >
+| < CSTORE: "cstore" >
+| < CWRITE: "cwrite" >
+| < DATA: ".data" >
+| < DIVI: "divI" >
+| < DIV: "div" >
+| < F2F:"f2f" >
+| < F2I: "f2i" >
+| < FADD: "fadd" >
+| < FCALL: "fcall" >
+| < FCOMP: "fcomp" >
+| < FDIV: "fdiv" >
+| < FLOADAI: "floadAI" >
+| < FLOADAO: "floadAO" >
+| < FLOAD: "fload" >
+| < FLOAT: ".float" >
+| < FMULT: "fmult" >
+| < FRAME: ".frame" >
+| < FREAD: "fread" >
+| < FRET: "fret" >
+| < FWRITE: "fwrite" >
+| < FSTOREAI: "fstoreAI" >
+| < FSTOREAO: "fstoreAO" >
+| < FSTORE: "fstore" >
+| < FSUB: "fsub" >
+| < GLOBAL: ".global" >
+| < I2F: "i2f" >
+| < I2I: "i2i" >
+| < ICALL: "icall" >
+| < IREAD: "iread" >
+| < IRET: "iret" >
+| < IWRITE: "iwrite" >
+| < JUMPI: "jumpI" >
+| < JUMP: "jump" >
+| < LOADAI: "loadAI" >
+| < LOADAO: "loadAO" >
+| < LOAD: "load" >
+| < LOADI: "loadI" >
+| < LSHIFTI: "lshiftI" >
+| < LSHIFT: "lshift" >
+| < MOD: "mod" >
+| < MULTI: "multI" >
+| < MULT: "mult" >
+| < NOP: "nop" >
+| < NOT: "not" >
+| < OR: "or" >
+| < RSHIFTI: "rshiftI" >
+| < RSHIFT: "rshift" >
+| < RET: "ret" >
+| < STOREAI: "storeAI" >
+| < STOREAO: "storeAO" >
+| < STORE: "store" >
+| < STRING: ".string" >
+| < SUBI: "subI" >
+| < SUB: "sub" >
+| < SWRITE: "swrite" >
+| < TBL: "tbl">
+| < TESTEQ: "testeq" >
+| < TESTGE: "testge" >
+| < TESTGT: "testgt" >
+| < TESTLE: "testle" >
+| < TESTLT: "testlt" >
+| < TESTNE: "testne" >
+| < TEXT: ".text" >
+
+}
+
+TOKEN : /* OTHER PARTS */
+{
+	< ASSIGN: "=>" >
+|   < ARROW: "->">
+|	< COLON: ":" >
+|	< SEMICOLON: ";">
+|	< LBRACKET: "[">
+|	< RBRACKET: "]">
+|   < COMMA: ",">
+|	< VR: "%vr" <NUMBER> >
+|	< STRING_CONST: "\""(~["\""])*"\"" >
+|   < LABEL: (<INITIAL>)? <ALPHA> (<ALPHA> | <INITIAL> | <DIGIT>)* >
+|	< #INITIAL: <DOT> | <UNDERSCORE> >
+|	< #DOT: "." >
+|   < #DIGIT: ["0" - "9"] >
+|	< #ALPHA: ["a" - "z"] | ["A" - "Z"] >
+|	< #UNDERSCORE: "_" >
+|   < FLOAT_CONST: <NUMBER> ("." (<DIGIT>)+ (<EXPONENT>)? | <EXPONENT>) >
+|	< NUMBER: "0" | ("-")? ["1" - "9"](<DIGIT>)* >
+|	< #EXPONENT: ("e" | "E") ("+" | "-")? (<DIGIT>)+ >
+}
+
+IlocProgram program() :
+{ 
+	Vector<IlocInstruction> program;
+	DataSection dataSection = new DataSection(new Vector<IlocInstruction>());
+}
+{
+	(
+		(dataSection = data())? program = procedures()
+		
+		| program = listOfIlocInstructions()
+		
+			{	
+				// if there is no frame pseudo op, create one for a
+				// main program with no stack and no parameters 
+				   
+				FramePseudoOp frameOp = new FramePseudoOp("main",0,
+					new Vector<VirtualRegisterOperand>());
+            	frameOp.setSourceLine(1);
+				program.insertElementAt(frameOp,0);
+			}
+	)	
+		{
+			return new IlocProgram(dataSection,program);
+		}
+}
+
+DataSection data() : 
+{
+	Vector<IlocInstruction> pseudoOps = new Vector<IlocInstruction>();
+	IlocInstruction dataOp = null;
+}
+{
+	<DATA> 		(
+				 dataOp = pseudoOp() 
+     				{
+       					pseudoOps.add(dataOp);
+     				}
+       			 )+ 
+    <TEXT>
+    	{
+        	return new DataSection(pseudoOps);
+    	}
+}
+
+Vector<IlocInstruction> procedures() : 
+{
+	Vector<IlocInstruction> proc;
+	Vector<IlocInstruction> program = new Vector<IlocInstruction>();
+}
+{
+	(proc = procedure()
+           {
+            program.addAll(proc);
+           }
+    )+
+    
+    	{
+    		return program;
+    	}
+}
+
+Vector<IlocInstruction> procedure() : 
+{
+	IlocInstruction inst;
+	Vector<IlocInstruction> proc = new Vector<IlocInstruction>();
+}
+{
+	inst = frameInstruction()
+	proc = listOfIlocInstructions()  
+     	{
+     		proc.insertElementAt(inst,0);
+     		return proc;
+     	}
+}
+
+Vector<IlocInstruction> listOfIlocInstructions() :
+{
+	IlocInstruction inst;
+	Vector<IlocInstruction> instList = new Vector<IlocInstruction>();
+	Vector<IlocInstruction> operList;
+	Token name = null;
+}
+{
+    (
+    	(name = <LABEL> <COLON>)? 
+    	(
+    		inst = operation()
+          		{
+          			if (name != null) {
+          				inst.setLabel(name.image);
+          				name = null;
+          			}
+            		instList.add(inst);
+          		}
+          	
+          	| <LBRACKET> operList = operationList() <RBRACKET>
+          		{
+   					if (name != null) {
+     					for (int i = 0; i < operList.size(); i++)
+     						operList.elementAt(i).setLabel(name.image);
+     					name = null;
+   					}
+          			instList.addAll(operList);
+          		}
+  		)
+     )+
+     	{
+     		return instList;
+     	}
+}
+
+
+FramePseudoOp frameInstruction() :  
+{
+	Vector<VirtualRegisterOperand> vRegs = new Vector<VirtualRegisterOperand>();
+	VirtualRegisterOperand vr;
+	Token routineName,stackSize;
+	FramePseudoOp frameOp;
+}
+{
+	<FRAME> routineName = <LABEL> <COMMA> stackSize = <NUMBER>
+        (<COMMA> vr = virtualReg()
+         	{
+            	vRegs.add(vr);
+            }
+        )* 
+   
+   		{
+        	frameOp = new FramePseudoOp(routineName.image,
+                                        Integer.parseInt(stackSize.image),
+                                        vRegs);
+            frameOp.setSourceLine(routineName.beginLine);
+            return frameOp;
+        }
+}
+
+Vector<IlocInstruction> operationList() :
+{
+	Token name;
+	IlocInstruction inst;
+	Vector<IlocInstruction> operList = new Vector<IlocInstruction>();
+}
+{
+    inst = operation() 
+		{
+            operList.add(inst);
+        }  
+    ( 
+    	<SEMICOLON> inst = operation()
+			{
+	            operList.add(inst);
+	        }  
+    )*
+    	{
+    		return operList;
+    	}
+}
+
+IlocInstruction operation() : 
+{
+	VirtualRegisterOperand vr1,vr2,vr3;
+	Vector<VirtualRegisterOperand> vRegs = new Vector<VirtualRegisterOperand>();
+	ImmediateOperand constVal;
+	Token num, label, label1, opc;
+	IlocInstruction inst;
+}
+{
+	 ( opc = <ADD> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+     	{
+            inst = new AddInstruction(vr1,vr2,vr3);
+        }
+
+     | opc = <ADDI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new AddIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+        }
+
+     | opc = <AND> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new AndInstruction(vr1,vr2,vr3);
+        }
+
+    | opc = <C2C> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new C2cInstruction(vr1,vr3);
+          }
+
+    | opc = <C2I> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new C2iInstruction(vr1,vr3);
+          }
+
+     | opc = <CALL> label = <LABEL>
+        (<COMMA> vr1 = virtualReg()
+         	{
+            	vRegs.add(vr1);
+            }
+        )*
+       	{
+            inst = new CallInstruction(new LabelOperand(label.image),vRegs);
+        }
+
+    | opc = <CBR> vr1 = virtualReg() <ARROW> label = <LABEL>
+    	{
+            inst = new CbrInstruction(vr1,new LabelOperand(label.image));
+        }
+
+    | opc = <CBRNE> vr1 = virtualReg() <ARROW> label = <LABEL>
+        {
+            inst = new CbrneInstruction(vr1,new LabelOperand(label.image));
+        }
+
+    | opc = <CBR_LT> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_ltInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CBR_LE> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_leInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CBR_EQ> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_eqInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CBR_NE> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_neInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CBR_GT> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_gtInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CBR_GE> vr1 = virtualReg() <ARROW> label = <LABEL> <COMMA> label1 = <LABEL>
+        {
+            inst = new Cbr_geInstruction(vr1,new LabelOperand(label.image),
+            							 new LabelOperand(label1.image));
+        }
+
+    | opc = <CLOADAI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new CloadAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <CLOADAO> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new CloadAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <CLOAD> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new CloadInstruction(vr1,vr3);
+          }
+
+    | opc = <CMP_LT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_ltInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <CMP_LE> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_leInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <CMP_EQ> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_eqInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <CMP_NE> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_neInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <CMP_GT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_gtInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <CMP_GE> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new Cmp_geInstruction(vr1,vr2,vr3);
+        }
+        
+    | opc = <COMP> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new CompInstruction(vr1,vr2,vr3);
+        }
+
+    | opc = <CREAD> vr1 = virtualReg()
+        {
+            inst = new CreadInstruction(vr1);
+        }
+
+   | opc = <CSTOREAI> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg() <COMMA> num = <NUMBER>
+          {
+            inst = new CstoreAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <CSTOREAO> vr1 = virtualReg() <ASSIGN> vr2 = virtualReg() <COMMA> vr3 = virtualReg()
+          {
+            inst = new CstoreAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <CSTORE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new CstoreInstruction(vr1,vr3);
+          }
+          
+    | opc = <CWRITE> vr1 = virtualReg()
+        {
+            inst = new CwriteInstruction(vr1);
+        }
+
+    | opc = <DIVI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new DivIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+        }
+
+    | opc = <DIV> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+        {
+            inst = new DivInstruction(vr1,vr2,vr3);
+        }
+
+    | opc = <F2F> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new F2fInstruction(vr1,vr3);
+          }
+
+    | opc = <F2I> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new F2iInstruction(vr1,vr3);
+          }
+
+    | opc = <FADD> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FaddInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FCALL> label = <LABEL>
+        (<COMMA> vr1 = virtualReg()
+         	{
+            	vRegs.add(vr1);
+            }
+        )* <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FcallInstruction(new LabelOperand(label.image),vRegs,vr3);
+          }
+
+    | opc = <FCOMP> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FcompInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FDIV> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FdivInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FLOADAI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FloadAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <FLOADAO> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FloadAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FLOAD> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FloadInstruction(vr1,vr3);
+          }
+
+    | opc = <FMULT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FmultInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FREAD> vr1 = virtualReg()
+          {
+            inst = new FreadInstruction(vr1);
+          }
+
+    | opc = <FRET> vr1 = virtualReg()
+          {
+            inst = new FretInstruction(vr1);
+          }
+
+    | opc = <FWRITE> vr1 = virtualReg()
+          {
+            inst = new FwriteInstruction(vr1);
+          }
+
+    | opc = <FSTOREAI> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg() <COMMA> num = <NUMBER> 
+           {
+            inst = new FstoreAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <FSTOREAO> vr1 = virtualReg() <ASSIGN> vr2 = virtualReg() <COMMA> vr3 = virtualReg() 
+          {
+            inst = new FstoreAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <FSTORE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FstoreInstruction(vr1,vr3);
+          }
+
+    | opc = <FSUB> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new FsubInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <I2F> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new I2fInstruction(vr1,vr3);
+          }
+
+    | opc = <I2I> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new I2iInstruction(vr1,vr3);
+          }
+
+    | opc = <ICALL> label = <LABEL>
+        (<COMMA> vr1 = virtualReg()
+         	{
+            	vRegs.add(vr1);
+            }
+        )* <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new IcallInstruction(new LabelOperand(label.image),vRegs,vr3);
+          }
+
+    | opc = <IREAD> vr1 = virtualReg()
+          {
+            inst = new IreadInstruction(vr1);
+          }
+
+    | opc = <IRET> vr1 = virtualReg()
+          {
+            inst = new IretInstruction(vr1);
+          }
+
+    | opc = <IWRITE> vr1 = virtualReg()
+          {
+            inst = new IwriteInstruction(vr1);
+          }
+
+    | opc = <JUMPI> <ARROW> label = <LABEL>
+          {
+            inst = new JumpIInstruction(new LabelOperand(label.image));
+          }
+
+    | opc =<JUMP> <ARROW> vr1 = virtualReg()
+          {
+            inst = new JumpInstruction(vr1);
+          }
+
+    | opc = <LOADAI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LoadAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <LOADAO> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LoadAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <LOAD> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LoadInstruction(vr1,vr3);
+          }
+
+    | opc = <LOADI> constVal = immediateVal() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LoadIInstruction(constVal,vr3);
+          }
+
+    | opc = <LSHIFTI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LshiftIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <LSHIFT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new LshiftInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <MOD> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new ModInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <MULTI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new MultIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <MULT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new MultInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <NOP>
+          {
+            inst = new NopInstruction();
+          }
+
+    | opc = <NOT> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new NotInstruction(vr1,vr3);
+          }
+
+    | opc = <OR> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new OrInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <RSHIFTI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new RshiftIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <RSHIFT> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new RshiftInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <RET>
+          {
+            inst = new RetInstruction();
+          }
+
+    | opc = <STOREAI> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg() <COMMA> num = <NUMBER>
+          {
+            inst = new StoreAIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <STOREAO> vr1 = virtualReg() <ASSIGN> vr2 = virtualReg() <COMMA> vr3 = virtualReg()
+          {
+            inst = new StoreAOInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <STORE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new StoreInstruction(vr1,vr3);
+          }
+
+    | opc = <SUBI> vr1 = virtualReg() <COMMA> num = <NUMBER> <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new SubIInstruction(vr1,
+                        new ConstantOperand(Integer.parseInt(num.image)),
+                        vr3);
+          }
+
+    | opc = <SUB> vr1 = virtualReg() <COMMA> vr2 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new SubInstruction(vr1,vr2,vr3);
+          }
+
+    | opc = <SWRITE> vr1 = virtualReg()
+          {
+            inst = new SwriteInstruction(vr1);
+          }
+
+    | opc = <TBL> vr1 = virtualReg() <COMMA> label = <LABEL>
+    	  {
+    	  	inst = new TblInstruction(vr1,new LabelOperand(label.image));
+    	  }
+    	  
+    | opc = <TESTEQ> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TesteqInstruction(vr1,vr3);
+          }
+
+    | opc = <TESTGE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TestgeInstruction(vr1,vr3);
+          }
+
+    | opc = <TESTGT> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TestgtInstruction(vr1,vr3);
+          }
+
+    | opc = <TESTLE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TestleInstruction(vr1,vr3);
+          }
+
+    | opc = <TESTLT> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TestltInstruction(vr1,vr3);
+          }
+
+    | opc = <TESTNE> vr1 = virtualReg() <ASSIGN> vr3 = virtualReg()
+          {
+            inst = new TestneInstruction(vr1,vr3);
+          }
+    )
+    
+    	{
+			inst.setSourceLine(opc.beginLine);
+			return inst;
+    	}   		
+}
+
+IlocInstruction pseudoOp() : 
+{
+	Token label,str,num,num1;
+}
+{
+	(
+	 <STRING> label = <LABEL> <COMMA> str = <STRING_CONST>
+         {
+          return new StringPseudoOp(label.image,
+                      str.image.substring(1,str.image.length()-1));
+         }
+
+     | <FLOAT> label = <LABEL> <COMMA> num = <FLOAT_CONST>
+         {
+          return new FloatPseudoOp(label.image,Float.parseFloat(num.image));
+         }
+
+     | <GLOBAL> label = <LABEL> <COMMA> num = <NUMBER> <COMMA> num1 = <NUMBER>
+         {
+           return new GlobalPseudoOp(label.image,
+                        Integer.parseInt(num.image),
+                        Integer.parseInt(num1.image));
+         }
+    )
+}
+
+VirtualRegisterOperand virtualReg() : 
+{
+	Token vr;
+}
+{
+	vr = <VR>
+           {
+             int vrNum = Integer.parseInt(vr.image.substring(3));
+             IlocProgram.setMaxVirtualReg(vrNum);
+             return new VirtualRegisterOperand(vrNum);
+           }
+}
+
+ImmediateOperand immediateVal() : 
+{
+	Token label,num;
+}
+{
+	(
+		label = <LABEL>
+          	 {
+              return new LabelOperand(label.image);
+             }
+     | 	num = <NUMBER>
+             {
+              return new ConstantOperand(Integer.valueOf(num.image));
+             }
+	)
+}
