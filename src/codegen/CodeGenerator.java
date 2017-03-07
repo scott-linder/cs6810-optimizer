@@ -11,6 +11,7 @@ import parser.IlocParser;
 import parser.ParseException;
 
 import iloc.IlocProgram;
+import iloc.IlocFrame;
 
 
 /**
@@ -41,19 +42,19 @@ public final class CodeGenerator {
         // parse the input file and return the intermediate
         //
 
-        IlocProgram prog;
+        IlocProgram program = null;
         
         try {
-          prog = IlocParser.program();
-          HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(prog.program);
+        	program = IlocParser.program();
         }
         catch (ParseException e) {
-          System.err.println("Invalid iloc file "+ fileName+": "+e.getMessage());
+        	System.err.println("Invalid iloc file "+ fileName+": "+e.getMessage());
         }
 
-        System.out.println("Parsed.");
+        for (IlocFrame frame : IlocFrame.findFrames(program)) {
+        	HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+        } 
         
-       
 	}
-
+	
 }

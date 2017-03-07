@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class IlocProgram {
     public DataSection dataSection; // the data section of the code
-    public ArrayList<IlocInstruction> program; // the iloc instructions
+    public ArrayList<IlocInstruction> instructions; // the iloc instructions
 
     public static int maxVirtualReg = 1; // the current maximum virtual register used
                                          // in the program
@@ -25,12 +25,12 @@ public class IlocProgram {
      * Create an iloc program.
      * 
      * @param dataSection the data section of the program
-     * @param program the iloc instructions.
+     * @param instructions the iloc instructions.
      */
     public IlocProgram(DataSection dataSection,
-                       Vector<IlocInstruction> program) {
+                       Vector<IlocInstruction> instructions) {
         this.dataSection = dataSection;
-        this.program = new ArrayList<>(program);
+        this.instructions = new ArrayList<>(instructions);
     }
 
     /**
@@ -48,6 +48,6 @@ public class IlocProgram {
      * @return int
      */
     public int getProgramSize() {
-      return program.size();
+      return instructions.size();
     }
 }
