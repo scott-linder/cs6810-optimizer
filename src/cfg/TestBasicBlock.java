@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import iloc.IlocProgram;
 import parser.IlocParser;
 import parser.ParseException;
 
@@ -22,7 +23,8 @@ public class TestBasicBlock {
 	@Test
 	public void testFindBasicBlocks() throws ParseException {
 		String ilocSource =
-				".frame	main, 0\n" +
+				".frame main, 0\n" +
+				"nop\n" +
 				".L1: nop\n" +
 				"nop\n" +
 				".L2: nop\n" +
@@ -30,7 +32,9 @@ public class TestBasicBlock {
 				"nop\n";
 		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
 		IlocParser parser = new IlocParser(ilocFile);
-		HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(parser.program().program);
+		IlocProgram program = parser.program();
+		program.program.remove(0);
+		HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(program.program);
 		assertThat(blocks.size(), is(3));
 		List<Integer> sizes = new ArrayList<>();
 		blocks.iterator().forEachRemaining((BasicBlock b) -> sizes.add(b.instructions.size()));
