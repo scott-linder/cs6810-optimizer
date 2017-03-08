@@ -23,14 +23,7 @@ public class BasicBlockTest {
 
 	@Test
 	public void testFindBasicBlocks() throws ParseException {
-		String ilocSource =
-				".frame main, 0\n" +
-				"nop\n" +
-				".L1: nop\n" +
-				"nop\n" +
-				".L2: nop\n" +
-				"nop\n" +
-				"nop\n";
+		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "nop\n" + ".L2: nop\n" + "nop\n" + "nop\n";
 		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
 		IlocParser parser = new IlocParser(ilocFile);
 		IlocProgram program = parser.program();
@@ -39,7 +32,7 @@ public class BasicBlockTest {
 		List<Integer> sizes = new ArrayList<>();
 		blocks.iterator().forEachRemaining((BasicBlock b) -> sizes.add(b.instructions.size()));
 		Collections.sort(sizes);
-		List<Integer> expected = Arrays.asList(1,2,3);
+		List<Integer> expected = Arrays.asList(1, 2, 3);
 		assertThat(sizes, is(expected));
 	}
 

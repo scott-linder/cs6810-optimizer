@@ -10,12 +10,15 @@ package iloc;
 public class BreakInstruction extends NoAddressIlocInstruction {
 
 	int PC;
-	
-	public BreakInstruction(int PC,int sourceLine){
+
+	public BreakInstruction(int PC, int sourceLine) {
 		this.PC = PC;
 		lineNumber = sourceLine;
 	}
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see iloc.IlocInstruction#getOpcode()
 	 */
 	@Override

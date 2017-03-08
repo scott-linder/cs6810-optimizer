@@ -8,7 +8,7 @@ import iloc.IlocInstruction;
 
 public class BasicBlock {
 	ArrayList<IlocInstruction> instructions = new ArrayList<>();
-	
+
 	public static HashSet<BasicBlock> findBasicBlocks(IlocFrame frame) {
 		ArrayList<IlocInstruction> instructions = frame.instructions;
 		// hash of indices of leader instructions in `program`

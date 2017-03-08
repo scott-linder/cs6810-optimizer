@@ -13,7 +13,6 @@ import parser.ParseException;
 import iloc.IlocProgram;
 import iloc.IlocFrame;
 
-
 /**
  * @author carr
  *
@@ -23,38 +22,29 @@ public final class CodeGenerator {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) throws java.io.FileNotFoundException,
-    	java.io.IOException {
-		
-        if (args.length == 0) {
-      	   System.err.println("No file name specified");
-             System.err.println("Command Syntax: optimizer <file>");
-             System.exit(-1);
-        }
-        
-    	String fileName = new String(args[args.length - 1]);
+	public static void main(String[] args) throws java.io.FileNotFoundException, java.io.IOException {
 
-    	FileReader ilocFile = new FileReader(fileName);
-                
-    	IlocParser parser = new IlocParser(ilocFile);
+		if (args.length == 0) {
+			System.err.println("No file name specified");
+			System.err.println("Command Syntax: optimizer <file>");
+			System.exit(-1);
+		}
 
-        //
-        // parse the input file and return the intermediate
-        //
+		String fileName = new String(args[args.length - 1]);
+		FileReader ilocFile = new FileReader(fileName);
+		IlocParser parser = new IlocParser(ilocFile);
+		IlocProgram program = null;
 
-        IlocProgram program = null;
-        
-        try {
-        	program = IlocParser.program();
-        }
-        catch (ParseException e) {
-        	System.err.println("Invalid iloc file "+ fileName+": "+e.getMessage());
-        }
+		try {
+			program = IlocParser.program();
+		} catch (ParseException e) {
+			System.err.println("Invalid iloc file " + fileName + ": " + e.getMessage());
+		}
 
-        for (IlocFrame frame : IlocFrame.findFrames(program)) {
-        	HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
-        } 
-        
+		for (IlocFrame frame : IlocFrame.findFrames(program)) {
+			HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+		}
+
 	}
-	
+
 }

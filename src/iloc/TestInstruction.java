@@ -1,13 +1,21 @@
 package iloc;
 
 /**
- * <p>Title: TestInstruction.java</p>
+ * <p>
+ * Title: TestInstruction.java
+ * </p>
  *
- * <p>Description: An abstract class for test instructions</p>
+ * <p>
+ * Description: An abstract class for test instructions
+ * </p>
  *
- * <p>Copyright: Copyright (c) 2006</p>
+ * <p>
+ * Copyright: Copyright (c) 2006
+ * </p>
  *
- * <p>Company: Michigan Technological University</p>
+ * <p>
+ * Company: Michigan Technological University
+ * </p>
  *
  * @author Steve Carr
  * @version 1.0

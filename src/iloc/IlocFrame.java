@@ -5,11 +5,11 @@ import java.util.ArrayList;
 public class IlocFrame {
 	public FramePseudoOp frameInstruction;
 	public ArrayList<IlocInstruction> instructions = new ArrayList<>();
-	
+
 	public IlocFrame(FramePseudoOp frameInstruction) {
 		this.frameInstruction = frameInstruction;
 	}
-	
+
 	public static ArrayList<IlocFrame> findFrames(IlocProgram program) {
 		ArrayList<IlocFrame> frames = new ArrayList<>();
 		// We assume the parser always adds a frame as the first instruction,

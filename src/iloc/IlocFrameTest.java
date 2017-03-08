@@ -20,16 +20,8 @@ public class IlocFrameTest {
 
 	@Test
 	public void testFindFrames() throws ParseException {
-		String ilocSource =
-				".frame main, 0\n" +
-				"nop\n" +
-				".frame foo, 0\n" +
-				"nop\n" +
-				"nop\n" +
-				".frame bar, 0\n" +
-				"nop\n" +
-				"nop\n" +
-				"nop\n";
+		String ilocSource = ".frame main, 0\n" + "nop\n" + ".frame foo, 0\n" + "nop\n" + "nop\n" + ".frame bar, 0\n"
+				+ "nop\n" + "nop\n" + "nop\n";
 		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
 		IlocParser parser = new IlocParser(ilocFile);
 		IlocProgram program = parser.program();
@@ -38,7 +30,7 @@ public class IlocFrameTest {
 		List<Integer> sizes = new ArrayList<>();
 		frames.iterator().forEachRemaining((IlocFrame f) -> sizes.add(f.instructions.size()));
 		Collections.sort(sizes);
-		List<Integer> expected = Arrays.asList(1,2,3);
+		List<Integer> expected = Arrays.asList(1, 2, 3);
 		assertThat(sizes, is(expected));
 	}
 

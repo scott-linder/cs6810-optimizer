@@ -3,7 +3,6 @@
  */
 package iloc;
 
-
 /**
  * @author carr
  *
@@ -13,12 +12,14 @@ public class Cmp_eqInstruction extends ThreeAddressIlocInstruction {
 	/**
 	 * Create a compare equal instruction.
 	 * 
-	 * @param source1 the left source register
-	 * @param source2 the right source register
-	 * @param dest the destination register
+	 * @param source1
+	 *            the left source register
+	 * @param source2
+	 *            the right source register
+	 * @param dest
+	 *            the destination register
 	 */
-	public Cmp_eqInstruction(VirtualRegisterOperand source1,
-			VirtualRegisterOperand source2,
+	public Cmp_eqInstruction(VirtualRegisterOperand source1, VirtualRegisterOperand source2,
 			VirtualRegisterOperand dest) {
 		this.source1 = source1;
 		this.source2 = source2;
