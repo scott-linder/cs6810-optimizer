@@ -24,6 +24,8 @@ public abstract class IlocInstruction {
 	protected String label = null; // the instruction label
 	protected int instId; // the instruction id
 	protected int lineNumber = -1;
+	private IlocInstruction prev = null;
+	private IlocInstruction next = null;
 
 	/**
 	 * Return the iloc opcode.
@@ -90,6 +92,50 @@ public abstract class IlocInstruction {
 
 	public boolean isBranch() {
 		return false;
+	}
+
+	public IlocInstruction getPrev() {
+		return prev;
+	}
+
+	public void setPrev(IlocInstruction prev) {
+		this.prev = prev;
+	}
+
+	public IlocInstruction getNext() {
+		return next;
+	}
+
+	public void setNext(IlocInstruction next) {
+		this.next = next;
+	}
+
+	public IlocInstruction nextInFrame() {
+		IlocInstruction next = getNext();
+		if (next == null || next instanceof FramePseudoOp)
+			return null;
+		return next;
+	}
+
+	public void delete() {
+		if (this.prev != null)
+			this.prev.next = this.next;
+		if (this.next != null)
+			this.next.prev = this.prev;
+	}
+
+	public int size() {
+		int size = 0;
+		for (IlocInstruction i = this; i != null; i = i.getNext())
+			size++;
+		return size;
+	}
+
+	public int frameSize() {
+		int size = 0;
+		for (IlocInstruction i = this; i != null; i = i.nextInFrame())
+			size++;
+		return size;
 	}
 
 }

@@ -1,7 +1,7 @@
 package iloc;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ public class IlocFrameTest {
 		ArrayList<IlocFrame> frames = IlocFrame.findFrames(program);
 		assertThat(frames.size(), is(3));
 		List<Integer> sizes = new ArrayList<>();
-		frames.iterator().forEachRemaining((IlocFrame f) -> sizes.add(f.instructions.size()));
+		frames.iterator().forEachRemaining((IlocFrame f) -> sizes.add(f.head().frameSize()));
 		Collections.sort(sizes);
 		List<Integer> expected = Arrays.asList(1, 2, 3);
 		assertThat(sizes, is(expected));

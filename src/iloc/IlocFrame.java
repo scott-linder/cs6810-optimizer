@@ -3,28 +3,26 @@ package iloc;
 import java.util.ArrayList;
 
 public class IlocFrame {
-	public FramePseudoOp frameInstruction;
-	public ArrayList<IlocInstruction> instructions = new ArrayList<>();
+	private FramePseudoOp frameInstruction;
 
-	public IlocFrame(FramePseudoOp frameInstruction) {
-		this.frameInstruction = frameInstruction;
+	public IlocFrame(IlocInstruction frameInstruction) {
+		this.frameInstruction = (FramePseudoOp) frameInstruction;
 	}
 
 	public static ArrayList<IlocFrame> findFrames(IlocProgram program) {
 		ArrayList<IlocFrame> frames = new ArrayList<>();
 		// We assume the parser always adds a frame as the first instruction,
 		// even if it is not present in the source.
-		IlocFrame frame = new IlocFrame((FramePseudoOp) program.instructions.get(0));
-		for (int i = 1; i < program.instructions.size(); i++) {
-			IlocInstruction instruction = program.instructions.get(i);
-			if (instruction instanceof FramePseudoOp) {
-				frames.add(frame);
-				frame = new IlocFrame((FramePseudoOp) instruction);
-			} else {
-				frame.instructions.add(instruction);
+		frames.add(new IlocFrame(program.head));
+		for (IlocInstruction i = program.head.getNext(); i != null; i = i.getNext()) {
+			if (i instanceof FramePseudoOp) {
+				frames.add(new IlocFrame(i));
 			}
 		}
-		frames.add(frame);
 		return frames;
+	}
+
+	public IlocInstruction head() {
+		return frameInstruction.nextInFrame();
 	}
 }

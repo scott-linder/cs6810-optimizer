@@ -7,11 +7,10 @@ import java.io.FileReader;
 import java.util.HashSet;
 
 import cfg.BasicBlock;
+import iloc.IlocFrame;
+import iloc.IlocProgram;
 import parser.IlocParser;
 import parser.ParseException;
-
-import iloc.IlocProgram;
-import iloc.IlocFrame;
 
 /**
  * @author carr

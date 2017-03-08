@@ -1,6 +1,6 @@
 package iloc;
 
-import java.util.*;
+import java.util.Vector;
 
 /**
  * <p>
@@ -24,7 +24,7 @@ import java.util.*;
  */
 public class IlocProgram {
 	public DataSection dataSection; // the data section of the code
-	public ArrayList<IlocInstruction> instructions; // the iloc instructions
+	public IlocInstruction head; // the iloc instructions
 
 	public static int maxVirtualReg = 1; // the current maximum virtual register
 											// used
@@ -40,7 +40,11 @@ public class IlocProgram {
 	 */
 	public IlocProgram(DataSection dataSection, Vector<IlocInstruction> instructions) {
 		this.dataSection = dataSection;
-		this.instructions = new ArrayList<>(instructions);
+		this.head = instructions.get(0);
+		for (int i = 0; i < instructions.size() - 1; i++)
+			instructions.get(i).setNext(instructions.get(i + 1));
+		for (int i = 1; i < instructions.size(); i++)
+			instructions.get(i).setPrev(instructions.get(i - 1));
 	}
 
 	/**
@@ -60,6 +64,6 @@ public class IlocProgram {
 	 * @return int
 	 */
 	public int getProgramSize() {
-		return instructions.size();
+		return head.size();
 	}
 }

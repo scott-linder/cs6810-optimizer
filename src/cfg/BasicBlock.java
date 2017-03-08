@@ -7,25 +7,27 @@ import iloc.IlocFrame;
 import iloc.IlocInstruction;
 
 public class BasicBlock {
+	IlocFrame frame;
 	ArrayList<IlocInstruction> instructions = new ArrayList<>();
+	ArrayList<BasicBlock> ancestors = new ArrayList<>();
+	ArrayList<BasicBlock> predecessors = new ArrayList<>();
 
 	public static HashSet<BasicBlock> findBasicBlocks(IlocFrame frame) {
-		ArrayList<IlocInstruction> instructions = frame.instructions;
-		// hash of indices of leader instructions in `program`
-		HashSet<Integer> leaders = new HashSet<>();
-		leaders.add(0);
-		for (int i = 1; i < instructions.size(); i++) {
-			if (instructions.get(i).hasLabel() || instructions.get(i - 1).isBranch()) {
+		IlocInstruction i = frame.head();
+		HashSet<IlocInstruction> leaders = new HashSet<>();
+		leaders.add(i);
+		for (i = i.nextInFrame(); i != null; i = i.nextInFrame()) {
+			if (i.hasLabel() || i.isBranch()) {
 				leaders.add(i);
 			}
 		}
 		HashSet<BasicBlock> blocks = new HashSet<>();
-		for (Integer leader : leaders) {
-			int i = leader;
+		for (IlocInstruction leader : leaders) {
+			i = leader;
 			BasicBlock block = new BasicBlock();
-			block.instructions.add(instructions.get(i++));
-			for (; i < instructions.size() && !leaders.contains(i); i++) {
-				block.instructions.add(instructions.get(i));
+			block.instructions.add(i);
+			for (i = i.nextInFrame(); i != null && !leaders.contains(i); i = i.nextInFrame()) {
+				block.instructions.add(i);
 			}
 			blocks.add(block);
 		}
