@@ -113,10 +113,9 @@ public abstract class IlocInstruction {
 	}
 
 	public IlocInstruction prevInFrame() {
-		IlocInstruction prev = getPrev();
 		if (prev == null || prev instanceof FramePseudoOp)
 			return null;
-		return next;
+		return prev;
 	}
 
 	public IlocInstruction getNext() {
@@ -128,7 +127,6 @@ public abstract class IlocInstruction {
 	}
 
 	public IlocInstruction nextInFrame() {
-		IlocInstruction next = getNext();
 		if (next == null || next instanceof FramePseudoOp)
 			return null;
 		return next;
