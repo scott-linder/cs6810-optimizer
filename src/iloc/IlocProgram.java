@@ -41,10 +41,13 @@ public class IlocProgram {
 	public IlocProgram(DataSection dataSection, Vector<IlocInstruction> instructions) {
 		this.dataSection = dataSection;
 		this.head = instructions.get(0);
-		for (int i = 0; i < instructions.size() - 1; i++)
-			instructions.get(i).setNext(instructions.get(i + 1));
-		for (int i = 1; i < instructions.size(); i++)
-			instructions.get(i).setPrev(instructions.get(i - 1));
+		IlocInstruction prev = null;
+		for (IlocInstruction i : instructions) {
+			if (prev != null)
+				prev.setNext(i);
+			i.setPrev(prev);
+			prev = i;
+		}
 	}
 
 	/**

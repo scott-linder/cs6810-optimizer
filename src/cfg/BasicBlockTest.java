@@ -52,4 +52,23 @@ public class BasicBlockTest {
 		assertThat(blocks.get(2).successors.size(), is(1));
 	}
 
+	@Test
+	public void testConstructDT() throws ParseException {
+		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "cbr %vr1 -> .L1\n" + ".L2: nop\n" + "nop\n"
+				+ "cbr %vr1 -> .L2\n";
+		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
+		IlocParser parser = new IlocParser(ilocFile);
+		IlocProgram program = parser.program();
+		ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(IlocFrame.findFrames(program).get(0));
+		BasicBlock.constructCFG(blocks);
+		BasicBlock.constructDT(blocks);
+		assertThat(blocks.get(0).parent, is((BasicBlock) null));
+		assertThat(blocks.get(0).children, is(Arrays.asList(blocks.get(1))));
+		assertThat(blocks.get(1).parent, is((blocks.get(0))));
+		assertThat(blocks.get(1).children, is(Arrays.asList(blocks.get(2))));
+		assertThat(blocks.get(2).parent, is((blocks.get(1))));
+		assertThat(blocks.get(2).children, is(Arrays.asList()));
+
+	}
+
 }
