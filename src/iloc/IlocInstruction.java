@@ -1,5 +1,7 @@
 package iloc;
 
+import java.util.ArrayList;
+
 /**
  * <p>
  * Title: IlocInstruction.java
@@ -91,7 +93,15 @@ public abstract class IlocInstruction {
 	}
 
 	public boolean isBranch() {
+		return branchDestinations() != null;
+	}
+
+	public boolean isUnconditionalBranch() {
 		return false;
+	}
+
+	public ArrayList<LabelOperand> branchDestinations() {
+		return null;
 	}
 
 	public IlocInstruction getPrev() {
@@ -100,6 +110,13 @@ public abstract class IlocInstruction {
 
 	public void setPrev(IlocInstruction prev) {
 		this.prev = prev;
+	}
+
+	public IlocInstruction prevInFrame() {
+		IlocInstruction prev = getPrev();
+		if (prev == null || prev instanceof FramePseudoOp)
+			return null;
+		return next;
 	}
 
 	public IlocInstruction getNext() {

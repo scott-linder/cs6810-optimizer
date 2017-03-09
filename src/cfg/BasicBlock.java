@@ -1,27 +1,54 @@
 package cfg;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
+import iloc.LabelOperand;
 
 public class BasicBlock {
 	IlocFrame frame;
 	ArrayList<IlocInstruction> instructions = new ArrayList<>();
-	ArrayList<BasicBlock> ancestors = new ArrayList<>();
 	ArrayList<BasicBlock> predecessors = new ArrayList<>();
+	ArrayList<BasicBlock> successors = new ArrayList<>();
 
-	public static HashSet<BasicBlock> findBasicBlocks(IlocFrame frame) {
+	public void addEdge(BasicBlock other) {
+		successors.add(other);
+		other.predecessors.add(this);
+	}
+
+	public IlocInstruction last() {
+		return instructions.get(instructions.size() - 1);
+	}
+
+	public static BasicBlock findBasicBlockWithLabel(ArrayList<BasicBlock> blocks, String label) {
+		for (BasicBlock block : blocks) {
+			for (IlocInstruction i : block.instructions)
+				if (i.getLabel() != null && i.getLabel().equals(label))
+					return block;
+		}
+		return null;
+	}
+
+	public static BasicBlock findBasicBlockWithInstruction(ArrayList<BasicBlock> blocks, IlocInstruction instruction) {
+		for (BasicBlock block : blocks) {
+			for (IlocInstruction i : block.instructions)
+				if (i == instruction)
+					return block;
+		}
+		return null;
+	}
+
+	public static ArrayList<BasicBlock> findBasicBlocks(IlocFrame frame) {
 		IlocInstruction i = frame.head();
-		HashSet<IlocInstruction> leaders = new HashSet<>();
+		ArrayList<IlocInstruction> leaders = new ArrayList<>();
 		leaders.add(i);
 		for (i = i.nextInFrame(); i != null; i = i.nextInFrame()) {
-			if (i.hasLabel() || i.isBranch()) {
+			if (i.hasLabel() || (i.prevInFrame() != null && i.prevInFrame().isBranch())) {
 				leaders.add(i);
 			}
 		}
-		HashSet<BasicBlock> blocks = new HashSet<>();
+		ArrayList<BasicBlock> blocks = new ArrayList<>();
 		for (IlocInstruction leader : leaders) {
 			i = leader;
 			BasicBlock block = new BasicBlock();
@@ -32,5 +59,18 @@ public class BasicBlock {
 			blocks.add(block);
 		}
 		return blocks;
+	}
+
+	public static void constructCFG(ArrayList<BasicBlock> blocks) {
+		for (BasicBlock block : blocks) {
+			if (block.last().isBranch())
+				for (LabelOperand target : block.last().branchDestinations())
+					block.addEdge(findBasicBlockWithLabel(blocks, target.getLabel()));
+			if (!block.last().isUnconditionalBranch()) {
+				IlocInstruction next = block.last().nextInFrame();
+				if (next != null)
+					block.addEdge(findBasicBlockWithInstruction(blocks, next));
+			}
+		}
 	}
 }

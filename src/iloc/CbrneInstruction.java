@@ -1,5 +1,7 @@
 package iloc;
 
+import java.util.ArrayList;
+
 /**
  * <p>
  * Title: CbrneInstruction.java
@@ -42,6 +44,13 @@ public class CbrneInstruction extends TwoAddressIlocInstruction {
 	 */
 	public String getOpcode() {
 		return "cbrne";
+	}
+
+	@Override
+	public ArrayList<LabelOperand> branchDestinations() {
+		ArrayList<LabelOperand> destinations = new ArrayList<>();
+		destinations.add((LabelOperand) dest);
+		return destinations;
 	}
 
 }

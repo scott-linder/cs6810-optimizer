@@ -3,6 +3,8 @@
  */
 package iloc;
 
+import java.util.ArrayList;
+
 /**
  * @author carr
  *
@@ -40,6 +42,14 @@ public abstract class TwoDestinationBranchInstruction extends IlocInstruction {
 
 	public Operand getDestination2() {
 		return dest2;
+	}
+
+	@Override
+	public ArrayList<LabelOperand> branchDestinations() {
+		ArrayList<LabelOperand> destinations = new ArrayList<>();
+		destinations.add((LabelOperand) dest1);
+		destinations.add((LabelOperand) dest2);
+		return destinations;
 	}
 
 	/**

@@ -4,7 +4,7 @@
 package codegen;
 
 import java.io.FileReader;
-import java.util.HashSet;
+import java.util.ArrayList;
 
 import cfg.BasicBlock;
 import iloc.IlocFrame;
@@ -35,13 +35,14 @@ public final class CodeGenerator {
 		IlocProgram program = null;
 
 		try {
-			program = IlocParser.program();
+			program = parser.program();
 		} catch (ParseException e) {
 			System.err.println("Invalid iloc file " + fileName + ": " + e.getMessage());
 		}
 
 		for (IlocFrame frame : IlocFrame.findFrames(program)) {
-			HashSet<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+			ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+			BasicBlock.constructCFG(blocks);
 		}
 
 	}

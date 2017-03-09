@@ -1,5 +1,7 @@
 package iloc;
 
+import java.util.ArrayList;
+
 /**
  * <p>
  * Title: JumpIInstruction.java
@@ -42,7 +44,16 @@ public class JumpIInstruction extends OneAddressIlocInstruction {
 		return "jumpI";
 	}
 
-	public boolean isBranch() {
+	@Override
+	public ArrayList<LabelOperand> branchDestinations() {
+		ArrayList<LabelOperand> destinations = new ArrayList<>();
+		destinations.add((LabelOperand) source);
+		return destinations;
+	}
+
+	@Override
+	public boolean isUnconditionalBranch() {
 		return true;
 	}
+
 }

@@ -1,5 +1,7 @@
 package iloc;
 
+import java.util.ArrayList;
+
 /**
  * <p>
  * Title: CbrInstruction.java
@@ -43,6 +45,13 @@ public class CbrInstruction extends TwoAddressIlocInstruction {
 	 */
 	public String getOpcode() {
 		return "cbr";
+	}
+
+	@Override
+	public ArrayList<LabelOperand> branchDestinations() {
+		ArrayList<LabelOperand> destinations = new ArrayList<>();
+		destinations.add((LabelOperand) dest);
+		return destinations;
 	}
 
 }
