@@ -9,8 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import iloc.IlocFrame;
@@ -20,12 +22,19 @@ import parser.ParseException;
 
 public class BasicBlockTest {
 
-	@Test
-	public void testFindBasicBlocks() throws ParseException {
-		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "nop\n" + ".L2: nop\n" + "nop\n" + "nop\n";
+	private IlocProgram program;
+
+	@Before
+	public void parseProgram() throws ParseException {
+		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "cbr %vr1 -> .L1\n" + ".L2: nop\n" + "nop\n"
+				+ "cbr %vr1 -> .L2\n";
 		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
 		IlocParser parser = new IlocParser(ilocFile);
-		IlocProgram program = parser.program();
+		program = parser.program();
+	}
+
+	@Test
+	public void testFindBasicBlocks() {
 		ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(IlocFrame.findFrames(program).get(0));
 		assertThat(blocks.size(), is(3));
 		List<Integer> sizes = new ArrayList<>();
@@ -36,39 +45,34 @@ public class BasicBlockTest {
 	}
 
 	@Test
-	public void testConstructCFG() throws ParseException {
-		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "cbr %vr1 -> .L1\n" + ".L2: nop\n" + "nop\n"
-				+ "cbr %vr1 -> .L2\n";
-		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
-		IlocParser parser = new IlocParser(ilocFile);
-		IlocProgram program = parser.program();
+	public void testConstructCFG() {
 		ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(IlocFrame.findFrames(program).get(0));
 		BasicBlock.constructCFG(blocks);
-		assertThat(blocks.get(0).predecessors.size(), is(0));
-		assertThat(blocks.get(0).successors.size(), is(1));
-		assertThat(blocks.get(1).predecessors.size(), is(2));
-		assertThat(blocks.get(1).successors.size(), is(2));
-		assertThat(blocks.get(2).predecessors.size(), is(2));
-		assertThat(blocks.get(2).successors.size(), is(1));
+		BasicBlock b0 = blocks.get(0);
+		BasicBlock b1 = blocks.get(1);
+		BasicBlock b2 = blocks.get(2);
+		assertThat(new HashSet<>(b0.predecessors), is(new HashSet<>()));
+		assertThat(new HashSet<>(b0.successors), is(new HashSet<>(Arrays.asList(b1))));
+		assertThat(new HashSet<>(b1.predecessors), is(new HashSet<>(Arrays.asList(b0, b1))));
+		assertThat(new HashSet<>(b1.successors), is(new HashSet<>(Arrays.asList(b1, b2))));
+		assertThat(new HashSet<>(b2.predecessors), is(new HashSet<>(Arrays.asList(b1, b2))));
+		assertThat(new HashSet<>(b2.successors), is(new HashSet<>(Arrays.asList(b2))));
 	}
 
 	@Test
-	public void testConstructDT() throws ParseException {
-		String ilocSource = ".frame main, 0\n" + "nop\n" + ".L1: nop\n" + "cbr %vr1 -> .L1\n" + ".L2: nop\n" + "nop\n"
-				+ "cbr %vr1 -> .L2\n";
-		InputStream ilocFile = new ByteArrayInputStream(ilocSource.getBytes(StandardCharsets.UTF_8));
-		IlocParser parser = new IlocParser(ilocFile);
-		IlocProgram program = parser.program();
+	public void testConstructDT() {
 		ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(IlocFrame.findFrames(program).get(0));
 		BasicBlock.constructCFG(blocks);
 		BasicBlock.constructDT(blocks);
-		assertThat(blocks.get(0).parent, is((BasicBlock) null));
-		assertThat(blocks.get(0).children, is(Arrays.asList(blocks.get(1))));
-		assertThat(blocks.get(1).parent, is((blocks.get(0))));
-		assertThat(blocks.get(1).children, is(Arrays.asList(blocks.get(2))));
-		assertThat(blocks.get(2).parent, is((blocks.get(1))));
-		assertThat(blocks.get(2).children, is(Arrays.asList()));
-
+		BasicBlock b0 = blocks.get(0);
+		BasicBlock b1 = blocks.get(1);
+		BasicBlock b2 = blocks.get(2);
+		assertThat(b0.parent, is((BasicBlock) null));
+		assertThat(b0.children, is(Arrays.asList(b1)));
+		assertThat(b1.parent, is((b0)));
+		assertThat(b1.children, is(Arrays.asList(b2)));
+		assertThat(b2.parent, is((b1)));
+		assertThat(b2.children, is(Arrays.asList()));
 	}
 
 }

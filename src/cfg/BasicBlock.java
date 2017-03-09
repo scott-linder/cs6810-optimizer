@@ -11,7 +11,6 @@ import iloc.IlocInstruction;
 import iloc.LabelOperand;
 
 public class BasicBlock {
-	IlocFrame frame;
 	ArrayList<IlocInstruction> instructions = new ArrayList<>();
 
 	// CFG
