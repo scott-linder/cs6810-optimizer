@@ -11,15 +11,15 @@ import iloc.IlocInstruction;
 import iloc.LabelOperand;
 
 public class BasicBlock {
-	ArrayList<IlocInstruction> instructions = new ArrayList<>();
+	public ArrayList<IlocInstruction> instructions = new ArrayList<>();
 
 	// CFG
-	ArrayList<BasicBlock> predecessors = new ArrayList<>();
-	ArrayList<BasicBlock> successors = new ArrayList<>();
+	public ArrayList<BasicBlock> predecessors = new ArrayList<>();
+	public ArrayList<BasicBlock> successors = new ArrayList<>();
 
 	// DT
-	BasicBlock parent = null;
-	ArrayList<BasicBlock> children = new ArrayList<>();
+	public BasicBlock parent = null;
+	public ArrayList<BasicBlock> children = new ArrayList<>();
 
 	private void addEdge(BasicBlock other) {
 		successors.add(other);
