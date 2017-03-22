@@ -76,10 +76,12 @@ public class BasicBlockTest {
 		BasicBlock a0 = blocksList.get(0).get(0);
 		BasicBlock a1 = blocksList.get(0).get(1);
 		BasicBlock a2 = blocksList.get(0).get(2);
+		BasicBlock a3 = blocksList.get(0).get(3);
 		BasicBlock b0 = blocksList.get(1).get(0);
 		BasicBlock b1 = blocksList.get(1).get(1);
 		BasicBlock b2 = blocksList.get(1).get(2);
 		BasicBlock b3 = blocksList.get(1).get(3);
+		BasicBlock b4 = blocksList.get(1).get(4);
 
 		// frame a blocks
 		assertThat(new HashSet<>(a0.predecessors), is(new HashSet<>()));
@@ -87,7 +89,9 @@ public class BasicBlockTest {
 		assertThat(new HashSet<>(a1.predecessors), is(new HashSet<>(Arrays.asList(a0, a1))));
 		assertThat(new HashSet<>(a1.successors), is(new HashSet<>(Arrays.asList(a1, a2))));
 		assertThat(new HashSet<>(a2.predecessors), is(new HashSet<>(Arrays.asList(a0, a1))));
-		assertThat(new HashSet<>(a2.successors), is(new HashSet<>()));
+		assertThat(new HashSet<>(a2.successors), is(new HashSet<>(Arrays.asList(a3))));
+		assertThat(new HashSet<>(a3.predecessors), is(new HashSet<>(Arrays.asList(a2))));
+		assertThat(new HashSet<>(a3.successors), is(new HashSet<>()));
 
 		// frame b blocks
 		assertThat(new HashSet<>(b0.predecessors), is(new HashSet<>()));
@@ -97,7 +101,9 @@ public class BasicBlockTest {
 		assertThat(new HashSet<>(b2.predecessors), is(new HashSet<>(Arrays.asList(b0))));
 		assertThat(new HashSet<>(b2.successors), is(new HashSet<>(Arrays.asList(b3))));
 		assertThat(new HashSet<>(b3.predecessors), is(new HashSet<>(Arrays.asList(b1, b2))));
-		assertThat(new HashSet<>(b3.successors), is(new HashSet<>()));
+		assertThat(new HashSet<>(b3.successors), is(new HashSet<>(Arrays.asList(b4))));
+		assertThat(new HashSet<>(b4.predecessors), is(new HashSet<>(Arrays.asList(b3))));
+		assertThat(new HashSet<>(b4.successors), is(new HashSet<>()));
 	}
 
 	@Test
@@ -111,10 +117,12 @@ public class BasicBlockTest {
 		BasicBlock a0 = blocksList.get(0).get(0);
 		BasicBlock a1 = blocksList.get(0).get(1);
 		BasicBlock a2 = blocksList.get(0).get(2);
+		BasicBlock a3 = blocksList.get(0).get(3);
 		BasicBlock b0 = blocksList.get(1).get(0);
 		BasicBlock b1 = blocksList.get(1).get(1);
 		BasicBlock b2 = blocksList.get(1).get(2);
 		BasicBlock b3 = blocksList.get(1).get(3);
+		BasicBlock b4 = blocksList.get(1).get(4);
 
 		// frame a blocks
 		assertThat(a0.parent, is((BasicBlock) null));
@@ -122,7 +130,8 @@ public class BasicBlockTest {
 		assertThat(a1.parent, is((a0)));
 		assertThat(a1.children, is(Arrays.asList()));
 		assertThat(a2.parent, is((a0)));
-		assertThat(a2.children, is(Arrays.asList()));
+		assertThat(a2.children, is(Arrays.asList(a3)));
+		assertThat(a3.parent, is((a2)));
 
 		// frame b blocks
 		assertThat(b0.parent, is((BasicBlock) null));
@@ -132,6 +141,8 @@ public class BasicBlockTest {
 		assertThat(b2.parent, is((b0)));
 		assertThat(b2.children, is(Arrays.asList()));
 		assertThat(b3.parent, is((b0)));
-		assertThat(b3.children, is(Arrays.asList()));
+		assertThat(b3.children, is(Arrays.asList(b4)));
+		assertThat(b4.parent, is((b3)));
+		assertThat(b4.children, is(Arrays.asList()));
 	}
 }

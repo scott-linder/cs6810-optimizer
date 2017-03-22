@@ -86,6 +86,13 @@ public class BasicBlock {
 					block.addEdge(findBasicBlockWithInstruction(blocks, next));
 			}
 		}
+		// Ensure only 1 exit block exists
+		BasicBlock exit = new BasicBlock();
+		for (BasicBlock block : blocks) {
+			if (block.successors.isEmpty())
+				block.addEdge(exit);
+		}
+		blocks.add(exit);
 	}
 
 	public static void constructDT(ArrayList<BasicBlock> blocks) {
