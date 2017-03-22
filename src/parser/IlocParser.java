@@ -409,19 +409,17 @@ public class IlocParser implements IlocParserConstants {
         FramePseudoOp frameOp;
     jj_consume_token(FRAME);
     routineName = jj_consume_token(LABEL);
-    jj_consume_token(COMMA);
     stackSize = jj_consume_token(NUMBER);
     label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case COMMA:
+      case VR:
         ;
         break;
       default:
         jj_la1[7] = jj_gen;
         break label_4;
       }
-      jj_consume_token(COMMA);
       vr = virtualReg();
                 vRegs.add(vr);
     }
@@ -467,7 +465,6 @@ public class IlocParser implements IlocParserConstants {
     case ADD:
       opc = jj_consume_token(ADD);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -476,7 +473,6 @@ public class IlocParser implements IlocParserConstants {
     case ADDI:
       opc = jj_consume_token(ADDI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -487,7 +483,6 @@ public class IlocParser implements IlocParserConstants {
     case AND:
       opc = jj_consume_token(AND);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -513,14 +508,13 @@ public class IlocParser implements IlocParserConstants {
       label_6:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case COMMA:
+        case VR:
           ;
           break;
         default:
           jj_la1[9] = jj_gen;
           break label_6;
         }
-        jj_consume_token(COMMA);
         vr1 = virtualReg();
                 vRegs.add(vr1);
       }
@@ -529,23 +523,22 @@ public class IlocParser implements IlocParserConstants {
     case CBR:
       opc = jj_consume_token(CBR);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
             inst = new CbrInstruction(vr1,new LabelOperand(label.image));
       break;
     case CBRNE:
       opc = jj_consume_token(CBRNE);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
             inst = new CbrneInstruction(vr1,new LabelOperand(label.image));
       break;
     case CBR_LT:
       opc = jj_consume_token(CBR_LT);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_ltInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -553,9 +546,8 @@ public class IlocParser implements IlocParserConstants {
     case CBR_LE:
       opc = jj_consume_token(CBR_LE);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_leInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -563,9 +555,8 @@ public class IlocParser implements IlocParserConstants {
     case CBR_EQ:
       opc = jj_consume_token(CBR_EQ);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_eqInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -573,9 +564,8 @@ public class IlocParser implements IlocParserConstants {
     case CBR_NE:
       opc = jj_consume_token(CBR_NE);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_neInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -583,9 +573,8 @@ public class IlocParser implements IlocParserConstants {
     case CBR_GT:
       opc = jj_consume_token(CBR_GT);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_gtInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -593,9 +582,8 @@ public class IlocParser implements IlocParserConstants {
     case CBR_GE:
       opc = jj_consume_token(CBR_GE);
       vr1 = virtualReg();
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       label1 = jj_consume_token(LABEL);
             inst = new Cbr_geInstruction(vr1,new LabelOperand(label.image),
                                                                  new LabelOperand(label1.image));
@@ -603,7 +591,6 @@ public class IlocParser implements IlocParserConstants {
     case CLOADAI:
       opc = jj_consume_token(CLOADAI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -614,7 +601,6 @@ public class IlocParser implements IlocParserConstants {
     case CLOADAO:
       opc = jj_consume_token(CLOADAO);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -630,7 +616,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_LT:
       opc = jj_consume_token(CMP_LT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -639,7 +624,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_LE:
       opc = jj_consume_token(CMP_LE);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -648,7 +632,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_EQ:
       opc = jj_consume_token(CMP_EQ);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -657,7 +640,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_NE:
       opc = jj_consume_token(CMP_NE);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -666,7 +648,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_GT:
       opc = jj_consume_token(CMP_GT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -675,7 +656,6 @@ public class IlocParser implements IlocParserConstants {
     case CMP_GE:
       opc = jj_consume_token(CMP_GE);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -684,7 +664,6 @@ public class IlocParser implements IlocParserConstants {
     case COMP:
       opc = jj_consume_token(COMP);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -700,7 +679,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
             inst = new CstoreAIInstruction(vr1,
                         new ConstantOperand(Integer.parseInt(num.image)),
@@ -711,7 +689,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr2 = virtualReg();
-      jj_consume_token(COMMA);
       vr3 = virtualReg();
             inst = new CstoreAOInstruction(vr1,vr2,vr3);
       break;
@@ -730,7 +707,6 @@ public class IlocParser implements IlocParserConstants {
     case DIVI:
       opc = jj_consume_token(DIVI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -741,7 +717,6 @@ public class IlocParser implements IlocParserConstants {
     case DIV:
       opc = jj_consume_token(DIV);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -764,7 +739,6 @@ public class IlocParser implements IlocParserConstants {
     case FADD:
       opc = jj_consume_token(FADD);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -776,14 +750,13 @@ public class IlocParser implements IlocParserConstants {
       label_7:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case COMMA:
+        case VR:
           ;
           break;
         default:
           jj_la1[10] = jj_gen;
           break label_7;
         }
-        jj_consume_token(COMMA);
         vr1 = virtualReg();
                 vRegs.add(vr1);
       }
@@ -794,7 +767,6 @@ public class IlocParser implements IlocParserConstants {
     case FCOMP:
       opc = jj_consume_token(FCOMP);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -803,7 +775,6 @@ public class IlocParser implements IlocParserConstants {
     case FDIV:
       opc = jj_consume_token(FDIV);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -812,7 +783,6 @@ public class IlocParser implements IlocParserConstants {
     case FLOADAI:
       opc = jj_consume_token(FLOADAI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -823,7 +793,6 @@ public class IlocParser implements IlocParserConstants {
     case FLOADAO:
       opc = jj_consume_token(FLOADAO);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -839,7 +808,6 @@ public class IlocParser implements IlocParserConstants {
     case FMULT:
       opc = jj_consume_token(FMULT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -865,7 +833,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
             inst = new FstoreAIInstruction(vr1,
                         new ConstantOperand(Integer.parseInt(num.image)),
@@ -876,7 +843,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr2 = virtualReg();
-      jj_consume_token(COMMA);
       vr3 = virtualReg();
             inst = new FstoreAOInstruction(vr1,vr2,vr3);
       break;
@@ -890,7 +856,6 @@ public class IlocParser implements IlocParserConstants {
     case FSUB:
       opc = jj_consume_token(FSUB);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -916,14 +881,13 @@ public class IlocParser implements IlocParserConstants {
       label_8:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case COMMA:
+        case VR:
           ;
           break;
         default:
           jj_la1[11] = jj_gen;
           break label_8;
         }
-        jj_consume_token(COMMA);
         vr1 = virtualReg();
                 vRegs.add(vr1);
       }
@@ -948,20 +912,18 @@ public class IlocParser implements IlocParserConstants {
       break;
     case JUMPI:
       opc = jj_consume_token(JUMPI);
-      jj_consume_token(ARROW);
       label = jj_consume_token(LABEL);
             inst = new JumpIInstruction(new LabelOperand(label.image));
       break;
     case JUMP:
       opc = jj_consume_token(JUMP);
-      jj_consume_token(ARROW);
+      jj_consume_token(ASSIGN);
       vr1 = virtualReg();
             inst = new JumpInstruction(vr1);
       break;
     case LOADAI:
       opc = jj_consume_token(LOADAI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -972,7 +934,6 @@ public class IlocParser implements IlocParserConstants {
     case LOADAO:
       opc = jj_consume_token(LOADAO);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -995,7 +956,6 @@ public class IlocParser implements IlocParserConstants {
     case LSHIFTI:
       opc = jj_consume_token(LSHIFTI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1006,7 +966,6 @@ public class IlocParser implements IlocParserConstants {
     case LSHIFT:
       opc = jj_consume_token(LSHIFT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1015,7 +974,6 @@ public class IlocParser implements IlocParserConstants {
     case MOD:
       opc = jj_consume_token(MOD);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1024,7 +982,6 @@ public class IlocParser implements IlocParserConstants {
     case MULTI:
       opc = jj_consume_token(MULTI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1035,7 +992,6 @@ public class IlocParser implements IlocParserConstants {
     case MULT:
       opc = jj_consume_token(MULT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1055,7 +1011,6 @@ public class IlocParser implements IlocParserConstants {
     case OR:
       opc = jj_consume_token(OR);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1064,7 +1019,6 @@ public class IlocParser implements IlocParserConstants {
     case RSHIFTI:
       opc = jj_consume_token(RSHIFTI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1075,7 +1029,6 @@ public class IlocParser implements IlocParserConstants {
     case RSHIFT:
       opc = jj_consume_token(RSHIFT);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1090,7 +1043,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
             inst = new StoreAIInstruction(vr1,
                         new ConstantOperand(Integer.parseInt(num.image)),
@@ -1101,7 +1053,6 @@ public class IlocParser implements IlocParserConstants {
       vr1 = virtualReg();
       jj_consume_token(ASSIGN);
       vr2 = virtualReg();
-      jj_consume_token(COMMA);
       vr3 = virtualReg();
             inst = new StoreAOInstruction(vr1,vr2,vr3);
       break;
@@ -1115,7 +1066,6 @@ public class IlocParser implements IlocParserConstants {
     case SUBI:
       opc = jj_consume_token(SUBI);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1126,7 +1076,6 @@ public class IlocParser implements IlocParserConstants {
     case SUB:
       opc = jj_consume_token(SUB);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       vr2 = virtualReg();
       jj_consume_token(ASSIGN);
       vr3 = virtualReg();
@@ -1140,7 +1089,6 @@ public class IlocParser implements IlocParserConstants {
     case TBL:
       opc = jj_consume_token(TBL);
       vr1 = virtualReg();
-      jj_consume_token(COMMA);
       label = jj_consume_token(LABEL);
                 inst = new TblInstruction(vr1,new LabelOperand(label.image));
       break;
@@ -1202,7 +1150,6 @@ public class IlocParser implements IlocParserConstants {
     case STRING:
       jj_consume_token(STRING);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       str = jj_consume_token(STRING_CONST);
           {if (true) return new StringPseudoOp(label.image,
                       str.image.substring(1,str.image.length()-1));}
@@ -1210,16 +1157,13 @@ public class IlocParser implements IlocParserConstants {
     case FLOAT:
       jj_consume_token(FLOAT);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       num = jj_consume_token(FLOAT_CONST);
           {if (true) return new FloatPseudoOp(label.image,Float.parseFloat(num.image));}
       break;
     case GLOBAL:
       jj_consume_token(GLOBAL);
       label = jj_consume_token(LABEL);
-      jj_consume_token(COMMA);
       num = jj_consume_token(NUMBER);
-      jj_consume_token(COMMA);
       num1 = jj_consume_token(NUMBER);
            {if (true) return new GlobalPseudoOp(label.image,
                         Integer.parseInt(num.image),
@@ -1291,7 +1235,7 @@ public class IlocParser implements IlocParserConstants {
       jj_la1_2 = new int[] {0x0,0x3ff7ffff,0x80000,0x0,0x0,0x3ff7ffff,0x3ff7ffff,0x0,0x0,0x0,0x0,0x0,0x3ff7ffff,0x80000,0x0,};
    }
    private static void jj_la1_init_3() {
-      jj_la1_3 = new int[] {0x0,0x108,0x0,0x0,0x100,0x8,0x108,0x20,0x4,0x20,0x20,0x20,0x0,0x0,0x8100,};
+      jj_la1_3 = new int[] {0x0,0x44,0x0,0x0,0x40,0x4,0x44,0x10,0x2,0x10,0x10,0x10,0x0,0x0,0x2040,};
    }
 
   /** Constructor with InputStream. */
@@ -1408,7 +1352,7 @@ public class IlocParser implements IlocParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[113];
+    boolean[] la1tokens = new boolean[111];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -1431,7 +1375,7 @@ public class IlocParser implements IlocParserConstants {
         }
       }
     }
-    for (int i = 0; i < 113; i++) {
+    for (int i = 0; i < 111; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

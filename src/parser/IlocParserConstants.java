@@ -193,39 +193,35 @@ public interface IlocParserConstants {
   /** RegularExpression Id. */
   int ASSIGN = 95;
   /** RegularExpression Id. */
-  int ARROW = 96;
+  int COLON = 96;
   /** RegularExpression Id. */
-  int COLON = 97;
+  int SEMICOLON = 97;
   /** RegularExpression Id. */
-  int SEMICOLON = 98;
+  int LBRACKET = 98;
   /** RegularExpression Id. */
-  int LBRACKET = 99;
+  int RBRACKET = 99;
   /** RegularExpression Id. */
-  int RBRACKET = 100;
+  int VR = 100;
   /** RegularExpression Id. */
-  int COMMA = 101;
+  int STRING_CONST = 101;
   /** RegularExpression Id. */
-  int VR = 102;
+  int LABEL = 102;
   /** RegularExpression Id. */
-  int STRING_CONST = 103;
+  int INITIAL = 103;
   /** RegularExpression Id. */
-  int LABEL = 104;
+  int DOT = 104;
   /** RegularExpression Id. */
-  int INITIAL = 105;
+  int DIGIT = 105;
   /** RegularExpression Id. */
-  int DOT = 106;
+  int ALPHA = 106;
   /** RegularExpression Id. */
-  int DIGIT = 107;
+  int UNDERSCORE = 107;
   /** RegularExpression Id. */
-  int ALPHA = 108;
+  int FLOAT_CONST = 108;
   /** RegularExpression Id. */
-  int UNDERSCORE = 109;
+  int NUMBER = 109;
   /** RegularExpression Id. */
-  int FLOAT_CONST = 110;
-  /** RegularExpression Id. */
-  int NUMBER = 111;
-  /** RegularExpression Id. */
-  int EXPONENT = 112;
+  int EXPONENT = 110;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -328,12 +324,10 @@ public interface IlocParserConstants {
     "\"testne\"",
     "\".text\"",
     "\"=>\"",
-    "\"->\"",
     "\":\"",
     "\";\"",
     "\"[\"",
     "\"]\"",
-    "\",\"",
     "<VR>",
     "<STRING_CONST>",
     "<LABEL>",
