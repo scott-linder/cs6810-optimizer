@@ -44,6 +44,7 @@ public final class CodeGenerator {
 			ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
 			BasicBlock.constructCFG(blocks);
 			BasicBlock.constructDT(blocks);
+			BasicBlock.analyzeLiveness(blocks);
 		}
 
 	}

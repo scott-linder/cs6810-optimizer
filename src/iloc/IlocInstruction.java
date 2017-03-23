@@ -28,6 +28,7 @@ public abstract class IlocInstruction {
 	protected int lineNumber = -1;
 	private IlocInstruction prev = null;
 	private IlocInstruction next = null;
+	private boolean dead = false;
 
 	/**
 	 * Return the iloc opcode.
@@ -153,4 +154,26 @@ public abstract class IlocInstruction {
 		return size;
 	}
 
+	public boolean isDead() {
+		return dead;
+	}
+
+	public void kill() {
+		this.dead = true;
+	}
+
+	public boolean remove() {
+		if (this.dead) {
+			if (null != this.prev) {
+				this.next.prev = this.prev;
+			}
+
+			if (null != this.next) {
+				this.prev.next = this.next;
+			}
+
+			return true;
+		} else
+			return false;
+	}
 }

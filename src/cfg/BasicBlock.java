@@ -1,6 +1,7 @@
 package cfg;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,11 @@ import java.util.Optional;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.LabelOperand;
+import iloc.OneAddressIlocInstruction;
+import iloc.Operand;
+import iloc.ThreeAddressIlocInstruction;
+import iloc.TwoAddressIlocInstruction;
+import iloc.VirtualRegisterOperand;
 
 public class BasicBlock {
 	public ArrayList<IlocInstruction> instructions = new ArrayList<>();
@@ -21,6 +27,13 @@ public class BasicBlock {
 	public BasicBlock parent = null;
 	public ArrayList<BasicBlock> children = new ArrayList<>();
 
+	// Liveness Analysis
+	public BitSet generated = new BitSet();
+	public BitSet preserved = new BitSet();
+	public BitSet in = new BitSet();
+	public BitSet out = new BitSet();
+	public boolean visited = false;
+
 	private void addEdge(BasicBlock other) {
 		successors.add(other);
 		other.predecessors.add(this);
@@ -29,6 +42,22 @@ public class BasicBlock {
 	private void setParent(BasicBlock other) {
 		parent = other;
 		parent.children.add(this);
+	}
+
+	private boolean isGenerated(VirtualRegisterOperand o) {
+		return generated.get(o.getRegisterId());
+	}
+
+	private void generates(VirtualRegisterOperand o) {
+		generated.set(o.getRegisterId());
+	}
+
+	private boolean isPreserved(VirtualRegisterOperand o) {
+		return !preserved.get(o.getRegisterId());
+	}
+
+	private void preserves(VirtualRegisterOperand o) {
+		preserved.set(o.getRegisterId());
 	}
 
 	public IlocInstruction last() {
@@ -138,5 +167,108 @@ public class BasicBlock {
 			if (idom.isPresent())
 				block.setParent(idom.get());
 		}
+	}
+
+	public static void analyzeLiveness(ArrayList<BasicBlock> blocks) {
+		for (BasicBlock b : blocks) {
+			for (IlocInstruction i : b.instructions) {
+				if (i instanceof ThreeAddressIlocInstruction) {
+					ThreeAddressIlocInstruction instruction = (ThreeAddressIlocInstruction) i;
+
+					Operand[] sources = { instruction.getLeftOperand(), instruction.getRightOperand() };
+					Operand destination = instruction.getDestination();
+
+					for (Operand source : sources) {
+						if (source instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+
+							if (b.isPreserved(rval)) {
+								b.generates(rval);
+							}
+						}
+					}
+
+					if (destination instanceof VirtualRegisterOperand) {
+						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
+
+						b.preserves(lval);
+					}
+
+				} else if (i instanceof TwoAddressIlocInstruction) {
+					TwoAddressIlocInstruction instruction = (TwoAddressIlocInstruction) i;
+
+					Operand source = instruction.getSource();
+					Operand destination = instruction.getDestination();
+
+					if (source instanceof VirtualRegisterOperand) {
+						VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+
+						if (b.isPreserved(rval)) {
+							b.generates(rval);
+						}
+					}
+
+					if (destination instanceof VirtualRegisterOperand) {
+						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
+
+						b.preserves(lval);
+					}
+
+				} else if (i instanceof OneAddressIlocInstruction) {
+					OneAddressIlocInstruction instruction = (OneAddressIlocInstruction) i;
+
+					Operand source = instruction.getOperand();
+
+					if (source instanceof VirtualRegisterOperand) {
+						VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+
+						if (b.isPreserved(rval)) {
+							b.generates(rval);
+						}
+					}
+				}
+			}
+		}
+
+		boolean changed;
+		do {
+			for (BasicBlock b : blocks) {
+				b.visited = false;
+			}
+			changed = propagate(blocks.get(0), blocks);
+		} while (changed);
+
+		// DEBUG
+		for (BasicBlock b : blocks) {
+			System.out.println(blocks.indexOf(b) + ":: in: " + b.in + ", gen: " + b.generated + ", prsv: " + b.preserved
+					+ ", out: " + b.out);
+		}
+	}
+
+	private static boolean propagate(BasicBlock b, ArrayList<BasicBlock> blocks) {
+		b.visited = true;
+
+		boolean changed = false;
+		for (BasicBlock successor : b.successors) {
+			if (!successor.visited) {
+				changed = propagate(successor, blocks);
+			}
+
+			BitSet old = b.out;
+			b.out.or(successor.in);
+			if (!old.equals(b.out))
+				changed = true;
+		}
+
+		BitSet old = b.in;
+		BitSet out = (BitSet) b.out.clone();
+		BitSet gen = (BitSet) b.generated.clone();
+		out.andNot(b.preserved);
+		gen.or(out);
+		b.in = gen;
+		if (!old.equals(b.in))
+			changed = true;
+
+		return changed;
 	}
 }
