@@ -6,12 +6,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Vector;
 
+import iloc.IcallInstruction;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.LabelOperand;
 import iloc.OneAddressIlocInstruction;
 import iloc.Operand;
+import iloc.StoreInstruction;
 import iloc.ThreeAddressIlocInstruction;
 import iloc.TwoAddressIlocInstruction;
 import iloc.VirtualRegisterOperand;
@@ -189,6 +192,7 @@ public class BasicBlock {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void analyzeLiveness(ArrayList<BasicBlock> blocks) {
 		for (BasicBlock b : blocks) {
 			for (IlocInstruction i : b.instructions) {
@@ -220,18 +224,36 @@ public class BasicBlock {
 					Operand source = instruction.getSource();
 					Operand destination = instruction.getDestination();
 
-					if (source instanceof VirtualRegisterOperand) {
-						VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+					if (i instanceof StoreInstruction) {
+						if (source instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
 
-						if (b.isPreserved(rval)) {
-							b.generates(rval);
+							if (b.isPreserved(rval)) {
+								b.generates(rval);
+							}
 						}
-					}
 
-					if (destination instanceof VirtualRegisterOperand) {
-						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
+						if (destination instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
 
-						b.preserves(lval);
+							if (b.isPreserved(lval)) {
+								b.generates(lval);
+							}
+						}
+					} else {
+						if (source instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+
+							if (b.isPreserved(rval)) {
+								b.generates(rval);
+							}
+						}
+
+						if (destination instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
+
+							b.preserves(lval);
+						}
 					}
 
 				} else if (i instanceof OneAddressIlocInstruction) {
@@ -245,6 +267,30 @@ public class BasicBlock {
 						if (b.isPreserved(rval)) {
 							b.generates(rval);
 						}
+					}
+				} else if (i instanceof IcallInstruction) {
+					IcallInstruction instruction = (IcallInstruction) i;
+
+					Vector operands = instruction.getOperands();
+					// GROSS
+					Operand[] sources = (Operand[]) operands.subList(1, operands.size())
+							.toArray(new Operand[operands.size() - 1]);
+					Operand destination = instruction.getReturnRegister();
+
+					for (Operand source : sources) {
+						if (source instanceof VirtualRegisterOperand) {
+							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
+
+							if (b.isPreserved(rval)) {
+								b.generates(rval);
+							}
+						}
+					}
+
+					if (destination instanceof VirtualRegisterOperand) {
+						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
+
+						b.preserves(lval);
 					}
 				}
 			}
