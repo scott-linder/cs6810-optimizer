@@ -145,4 +145,37 @@ public class BasicBlockTest {
 		assertThat(b4.parent, is((b3)));
 		assertThat(b4.children, is(Arrays.asList()));
 	}
+
+	@Test
+	public void testComputeDF() {
+		for (ArrayList<BasicBlock> bs : blocksList) {
+			BasicBlock.constructCFG(bs);
+			BasicBlock.constructDT(bs);
+			BasicBlock.computeDF(bs);
+		}
+
+		// frame a and frame b blocks get
+		BasicBlock a0 = blocksList.get(0).get(0);
+		BasicBlock a1 = blocksList.get(0).get(1);
+		BasicBlock a2 = blocksList.get(0).get(2);
+		BasicBlock a3 = blocksList.get(0).get(3);
+		BasicBlock b0 = blocksList.get(1).get(0);
+		BasicBlock b1 = blocksList.get(1).get(1);
+		BasicBlock b2 = blocksList.get(1).get(2);
+		BasicBlock b3 = blocksList.get(1).get(3);
+		BasicBlock b4 = blocksList.get(1).get(4);
+
+		// frame a blocks
+		assertThat(a0.df, is(new HashSet<>()));
+		assertThat(a1.df, is(new HashSet<>(Arrays.asList(a1, a2))));
+		assertThat(a2.df, is(new HashSet<>()));
+		assertThat(a3.df, is(new HashSet<>()));
+
+		// frame b blocks
+		assertThat(b0.df, is(new HashSet<>()));
+		assertThat(b1.df, is(new HashSet<>(Arrays.asList(b3))));
+		assertThat(b2.df, is(new HashSet<>(Arrays.asList(b3))));
+		assertThat(b3.df, is(new HashSet<>()));
+		assertThat(b4.df, is(new HashSet<>()));
+	}
 }

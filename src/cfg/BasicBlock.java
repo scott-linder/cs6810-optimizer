@@ -34,6 +34,12 @@ public class BasicBlock {
 	public BitSet out = new BitSet();
 	public boolean visited = false;
 
+	// DF
+	public HashSet<BasicBlock> df = new HashSet<>();
+
+	// DF+
+	public HashSet<BasicBlock> dfplus = new HashSet<>();
+
 	private void addEdge(BasicBlock other) {
 		successors.add(other);
 		other.predecessors.add(this);
@@ -42,6 +48,20 @@ public class BasicBlock {
 	private void setParent(BasicBlock other) {
 		parent = other;
 		parent.children.add(this);
+	}
+
+	private boolean dominates(BasicBlock other) {
+		if (this == other)
+			return true;
+		for (BasicBlock child : children) {
+			if (child.dominates(other))
+				return true;
+		}
+		return false;
+	}
+
+	private boolean strictlyDominates(BasicBlock other) {
+		return dominates(other) && this != other;
 	}
 
 	private boolean isGenerated(VirtualRegisterOperand o) {
@@ -270,5 +290,30 @@ public class BasicBlock {
 			changed = true;
 
 		return changed;
+	}
+
+	public static void computeDF(ArrayList<BasicBlock> blocks) {
+		computeDFRecursive(blocks.get(0));
+	}
+
+	private static void computeDFRecursive(BasicBlock block) {
+		// Post-order
+		if (block == null)
+			return;
+		for (BasicBlock child : block.children)
+			computeDFRecursive(child);
+		// Actual iteration
+		for (BasicBlock child : block.children) {
+			for (BasicBlock childsDf : child.df) {
+				if (!block.strictlyDominates(childsDf)) {
+					block.df.add(childsDf);
+				}
+			}
+		}
+		for (BasicBlock successor : block.successors) {
+			if (!block.strictlyDominates(successor)) {
+				block.df.add(successor);
+			}
+		}
 	}
 }
