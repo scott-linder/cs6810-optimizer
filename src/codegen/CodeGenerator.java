@@ -45,6 +45,8 @@ public final class CodeGenerator {
 			BasicBlock.constructCFG(blocks);
 			BasicBlock.constructDT(blocks);
 			BasicBlock.analyzeLiveness(blocks);
+			BasicBlock.computeDF(blocks);
+			BasicBlock.insertPhiNodes(blocks);
 		}
 
 	}

@@ -5,7 +5,9 @@ import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Vector;
 
 import iloc.IcallInstruction;
@@ -20,6 +22,7 @@ import iloc.TwoAddressIlocInstruction;
 import iloc.VirtualRegisterOperand;
 
 public class BasicBlock {
+	public ArrayList<PhiNode> phiNodes = new ArrayList<>();
 	public ArrayList<IlocInstruction> instructions = new ArrayList<>();
 
 	// CFG
@@ -39,9 +42,6 @@ public class BasicBlock {
 
 	// DF
 	public HashSet<BasicBlock> df = new HashSet<>();
-
-	// DF+
-	public HashSet<BasicBlock> dfplus = new HashSet<>();
 
 	private void addEdge(BasicBlock other) {
 		successors.add(other);
@@ -69,6 +69,10 @@ public class BasicBlock {
 
 	private boolean isGenerated(VirtualRegisterOperand o) {
 		return generated.get(o.getRegisterId());
+	}
+
+	private boolean isGenerated(int o) {
+		return generated.get(o);
 	}
 
 	private void generates(VirtualRegisterOperand o) {
@@ -359,6 +363,55 @@ public class BasicBlock {
 		for (BasicBlock successor : block.successors) {
 			if (!block.strictlyDominates(successor)) {
 				block.df.add(successor);
+			}
+		}
+	}
+
+	private static HashSet<BasicBlock> getSv(int vr, ArrayList<BasicBlock> blocks) {
+		HashSet<BasicBlock> sv = new HashSet<>();
+		for (BasicBlock block : blocks) {
+			if (block.isGenerated(vr)) {
+				sv.add(block);
+			}
+		}
+		sv.add(blocks.get(0));
+		return sv;
+	}
+
+	private static HashSet<BasicBlock> computeDFPlus(HashSet<BasicBlock> sv) {
+		Queue<BasicBlock> work = new LinkedList<>();
+		HashSet<BasicBlock> dfPlus = new HashSet<>();
+		work.addAll(sv);
+		while (!work.isEmpty()) {
+			BasicBlock b = work.remove();
+			for (BasicBlock c : b.df) {
+				if (!dfPlus.contains(c)) {
+					dfPlus.add(c);
+					work.add(c);
+				}
+			}
+		}
+		return dfPlus;
+	}
+
+	private static BitSet variables(ArrayList<BasicBlock> blocks) {
+		BitSet vars = new BitSet();
+		for (BasicBlock block : blocks) {
+			vars.or(block.out);
+		}
+		return vars;
+	}
+
+	public static void insertPhiNodes(ArrayList<BasicBlock> blocks) {
+		BitSet vars = variables(blocks);
+		for (int t = vars.nextSetBit(0); t >= 0; t = vars.nextSetBit(t + 1)) {
+			HashSet<BasicBlock> sv = getSv(t, blocks);
+			HashSet<BasicBlock> dfplus = computeDFPlus(sv);
+			for (BasicBlock block : dfplus) {
+				if (block.in.get(t)) {
+					int n = block.predecessors.size();
+					block.phiNodes.add(new PhiNode(new VirtualRegisterOperand(t), n));
+				}
 			}
 		}
 	}

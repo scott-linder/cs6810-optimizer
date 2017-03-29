@@ -25,6 +25,27 @@ import parser.ParseException;
 public class BasicBlockTest {
 	private ArrayList<IlocFrame> framesList;
 	private ArrayList<ArrayList<BasicBlock>> blocksList;
+	BasicBlock a0;
+	BasicBlock a1;
+	BasicBlock a2;
+	BasicBlock a3;
+	BasicBlock b0;
+	BasicBlock b1;
+	BasicBlock b2;
+	BasicBlock b3;
+	BasicBlock b4;
+
+	private void nameBlocks() {
+		a0 = blocksList.get(0).get(0);
+		a1 = blocksList.get(0).get(1);
+		a2 = blocksList.get(0).get(2);
+		a3 = blocksList.get(0).get(3);
+		b0 = blocksList.get(1).get(0);
+		b1 = blocksList.get(1).get(1);
+		b2 = blocksList.get(1).get(2);
+		b3 = blocksList.get(1).get(3);
+		b4 = blocksList.get(1).get(4);
+	}
 
 	@Before
 	public void parseProgram() throws ParseException {
@@ -72,16 +93,7 @@ public class BasicBlockTest {
 			BasicBlock.constructCFG(bs);
 		}
 
-		// frame a and frame b blocks get
-		BasicBlock a0 = blocksList.get(0).get(0);
-		BasicBlock a1 = blocksList.get(0).get(1);
-		BasicBlock a2 = blocksList.get(0).get(2);
-		BasicBlock a3 = blocksList.get(0).get(3);
-		BasicBlock b0 = blocksList.get(1).get(0);
-		BasicBlock b1 = blocksList.get(1).get(1);
-		BasicBlock b2 = blocksList.get(1).get(2);
-		BasicBlock b3 = blocksList.get(1).get(3);
-		BasicBlock b4 = blocksList.get(1).get(4);
+		nameBlocks();
 
 		// frame a blocks
 		assertThat(new HashSet<>(a0.predecessors), is(new HashSet<>()));
@@ -113,16 +125,7 @@ public class BasicBlockTest {
 			BasicBlock.constructDT(bs);
 		}
 
-		// frame a and frame b blocks get
-		BasicBlock a0 = blocksList.get(0).get(0);
-		BasicBlock a1 = blocksList.get(0).get(1);
-		BasicBlock a2 = blocksList.get(0).get(2);
-		BasicBlock a3 = blocksList.get(0).get(3);
-		BasicBlock b0 = blocksList.get(1).get(0);
-		BasicBlock b1 = blocksList.get(1).get(1);
-		BasicBlock b2 = blocksList.get(1).get(2);
-		BasicBlock b3 = blocksList.get(1).get(3);
-		BasicBlock b4 = blocksList.get(1).get(4);
+		nameBlocks();
 
 		// frame a blocks
 		assertThat(a0.parent, is((BasicBlock) null));
@@ -154,16 +157,7 @@ public class BasicBlockTest {
 			BasicBlock.computeDF(bs);
 		}
 
-		// frame a and frame b blocks get
-		BasicBlock a0 = blocksList.get(0).get(0);
-		BasicBlock a1 = blocksList.get(0).get(1);
-		BasicBlock a2 = blocksList.get(0).get(2);
-		BasicBlock a3 = blocksList.get(0).get(3);
-		BasicBlock b0 = blocksList.get(1).get(0);
-		BasicBlock b1 = blocksList.get(1).get(1);
-		BasicBlock b2 = blocksList.get(1).get(2);
-		BasicBlock b3 = blocksList.get(1).get(3);
-		BasicBlock b4 = blocksList.get(1).get(4);
+		nameBlocks();
 
 		// frame a blocks
 		assertThat(a0.df, is(new HashSet<>()));
@@ -177,5 +171,35 @@ public class BasicBlockTest {
 		assertThat(b2.df, is(new HashSet<>(Arrays.asList(b3))));
 		assertThat(b3.df, is(new HashSet<>()));
 		assertThat(b4.df, is(new HashSet<>()));
+	}
+
+	@Test
+	public void testAnalyzeLiveness() {
+		for (ArrayList<BasicBlock> bs : blocksList) {
+			BasicBlock.constructCFG(bs);
+			BasicBlock.analyzeLiveness(bs);
+		}
+
+		nameBlocks();
+
+		/* TODO: testing */
+		assertThat(true, is(false));
+	}
+
+	@Test
+	public void testInsertPhiNodes() {
+		for (ArrayList<BasicBlock> bs : blocksList) {
+			BasicBlock.constructCFG(bs);
+			BasicBlock.constructDT(bs);
+			BasicBlock.computeDF(bs);
+			BasicBlock.analyzeLiveness(bs);
+			BasicBlock.insertPhiNodes(bs);
+		}
+
+		nameBlocks();
+
+		/* TODO: testing */
+		System.out.println(a1.phiNodes.get(0).target);
+		assertThat(true, is(false));
 	}
 }

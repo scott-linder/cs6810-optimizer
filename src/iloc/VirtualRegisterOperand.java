@@ -30,6 +30,7 @@ public class VirtualRegisterOperand extends Operand {
 	public static final int FREE_REG = 4; // a free register
 
 	private int registerId; // the register id
+	private int ssaId;
 
 	/**
 	 * Create a virtual register
@@ -57,6 +58,14 @@ public class VirtualRegisterOperand extends Operand {
 	 */
 	public int getRegisterId() {
 		return registerId;
+	}
+
+	public int getSSAId() {
+		return ssaId;
+	}
+
+	public void setSSAId(int ssaId) {
+		this.ssaId = ssaId;
 	}
 
 	/**
