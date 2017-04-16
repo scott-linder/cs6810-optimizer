@@ -17,8 +17,8 @@ import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 
-import cfg.BasicBlock;
-import cfg.PhiNode;
+import codegen.BasicBlock;
+import codegen.PhiNode;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.IlocProgram;

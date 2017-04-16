@@ -1,4 +1,4 @@
-package cfg;
+package codegen;
 
 import java.util.ArrayList;
 import java.util.BitSet;

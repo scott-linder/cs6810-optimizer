@@ -16,7 +16,7 @@ import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 
-import cfg.BasicBlock;
+import codegen.BasicBlock;
 import iloc.IlocFrame;
 import iloc.IlocProgram;
 import parser.IlocParser;

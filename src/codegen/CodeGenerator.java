@@ -6,7 +6,6 @@ package codegen;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-import cfg.BasicBlock;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.IlocProgram;
