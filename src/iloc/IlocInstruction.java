@@ -1,6 +1,7 @@
 package iloc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 /**
@@ -199,40 +200,37 @@ public abstract class IlocInstruction {
 	}
 
 	/*
+	 * Register which this instruction writes.
+	 */
+	public VirtualRegisterOperand registerDestination() {
+		Operand d = destination();
+		if (d != null && d instanceof VirtualRegisterOperand)
+			return (VirtualRegisterOperand) d;
+		return null;
+	}
+
+	/*
 	 * Operands which this instruction reads.
 	 */
 	public ArrayList<Operand> operands() {
 		ArrayList<Operand> operands = new ArrayList<>();
 		if (this instanceof ThreeAddressIlocInstruction) {
-			ThreeAddressIlocInstruction instruction = (ThreeAddressIlocInstruction) this;
-
-			Operand[] sources = { instruction.getLeftOperand(), instruction.getRightOperand() };
-
-			for (Operand source : sources) {
-				operands.add(source);
-			}
+			ThreeAddressIlocInstruction i = (ThreeAddressIlocInstruction) this;
+			operands.addAll(Arrays.asList(i.getLeftOperand(), i.getRightOperand()));
 		} else if (this instanceof TwoAddressIlocInstruction) {
-			TwoAddressIlocInstruction instruction = (TwoAddressIlocInstruction) this;
-
-			Operand source = instruction.getSource();
-
-			operands.add(source);
+			TwoAddressIlocInstruction i = (TwoAddressIlocInstruction) this;
+			operands.add(i.getSource());
+			if (this instanceof StoreInstruction) {
+				operands.add(i.getDestination());
+			}
 		} else if (this instanceof OneAddressIlocInstruction) {
-			OneAddressIlocInstruction instruction = (OneAddressIlocInstruction) this;
-
-			Operand source = instruction.getOperand();
-
-			operands.add(source);
+			OneAddressIlocInstruction i = (OneAddressIlocInstruction) this;
+			operands.add(i.getOperand());
 		} else if (this instanceof IcallInstruction) {
-			IcallInstruction instruction = (IcallInstruction) this;
-
-			Vector operands_ = instruction.getOperands();
-			// GROSS
-			Operand[] sources = (Operand[]) operands_.subList(1, operands_.size())
-					.toArray(new Operand[operands_.size() - 1]);
-
-			for (Operand source : sources) {
-				operands.add(source);
+			IcallInstruction i = (IcallInstruction) this;
+			Vector ops = i.getOperands();
+			for (int j = 1; j < ops.size(); j++) {
+				operands.add((Operand) ops.get(j));
 			}
 		}
 		return operands;
@@ -241,34 +239,19 @@ public abstract class IlocInstruction {
 	/*
 	 * Registers which this instruction writes.
 	 */
-	public VirtualRegisterOperand registerDestination() {
-		VirtualRegisterOperand dest = null;
+	public Operand destination() {
+		Operand dest = null;
 		if (this instanceof ThreeAddressIlocInstruction) {
-			ThreeAddressIlocInstruction instruction = (ThreeAddressIlocInstruction) this;
-
-			Operand destination = instruction.getDestination();
-
-			if (destination instanceof VirtualRegisterOperand) {
-				dest = (VirtualRegisterOperand) destination;
-			}
+			ThreeAddressIlocInstruction i = (ThreeAddressIlocInstruction) this;
+			dest = i.getDestination();
 		} else if (this instanceof TwoAddressIlocInstruction) {
-			TwoAddressIlocInstruction instruction = (TwoAddressIlocInstruction) this;
-
-			Operand destination = instruction.getDestination();
-
+			TwoAddressIlocInstruction i = (TwoAddressIlocInstruction) this;
 			if (!(this instanceof StoreInstruction)) {
-				if (destination instanceof VirtualRegisterOperand) {
-					dest = (VirtualRegisterOperand) destination;
-				}
+				dest = i.getDestination();
 			}
 		} else if (this instanceof IcallInstruction) {
-			IcallInstruction instruction = (IcallInstruction) this;
-
-			Operand destination = instruction.getReturnRegister();
-
-			if (destination instanceof VirtualRegisterOperand) {
-				dest = (VirtualRegisterOperand) destination;
-			}
+			IcallInstruction i = (IcallInstruction) this;
+			dest = i.getReturnRegister();
 		}
 		return dest;
 	}
