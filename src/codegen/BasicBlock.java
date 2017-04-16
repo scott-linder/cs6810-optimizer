@@ -193,7 +193,7 @@ public class BasicBlock {
 	public static void analyzeLiveness(ArrayList<BasicBlock> blocks) {
 		for (BasicBlock b : blocks) {
 			for (IlocInstruction i : b.instructions) {
-				for (VirtualRegisterOperand rval : i.registerOperands()) {
+				for (VirtualRegisterOperand rval : i.registerSources()) {
 					if (b.isPreserved(rval)) {
 						b.generates(rval);
 					}
@@ -333,7 +333,7 @@ public class BasicBlock {
 		HashSet<String> variables = new HashSet<>();
 		for (BasicBlock block : blocks) {
 			for (IlocInstruction i : block.instructions) {
-				for (VirtualRegisterOperand vr : i.registerOperands()) {
+				for (VirtualRegisterOperand vr : i.registerSources()) {
 					variables.add(vr.toString());
 				}
 				if (i.registerDestination() != null) {
@@ -369,7 +369,7 @@ public class BasicBlock {
 		avails.add(new HashSet<>());
 
 		for (IlocInstruction i : block.instructions) {
-			for (VirtualRegisterOperand t : i.registerOperands()) {
+			for (VirtualRegisterOperand t : i.registerSources()) {
 				// replace T by top of name stack
 				t.setSSAId(nameStacks.get(t.toString()).peek());
 			}
@@ -420,7 +420,7 @@ public class BasicBlock {
 	public static void unSSA(ArrayList<BasicBlock> blocks) {
 		for (BasicBlock b : blocks) {
 			for (IlocInstruction i : b.instructions) {
-				for (VirtualRegisterOperand vr : i.registerOperands())
+				for (VirtualRegisterOperand vr : i.registerSources())
 					vr.setSSAId(-1);
 				if (i.registerDestination() != null)
 					i.registerDestination().setSSAId(-1);

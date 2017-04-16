@@ -191,9 +191,9 @@ public abstract class IlocInstruction {
 	/*
 	 * Registers which this instruction reads.
 	 */
-	public ArrayList<VirtualRegisterOperand> registerOperands() {
+	public ArrayList<VirtualRegisterOperand> registerSources() {
 		ArrayList<VirtualRegisterOperand> operands = new ArrayList<>();
-		for (Operand o : operands())
+		for (Operand o : sources())
 			if (o instanceof VirtualRegisterOperand)
 				operands.add((VirtualRegisterOperand) o);
 		return operands;
@@ -212,7 +212,7 @@ public abstract class IlocInstruction {
 	/*
 	 * Operands which this instruction reads.
 	 */
-	public ArrayList<Operand> operands() {
+	public ArrayList<Operand> sources() {
 		ArrayList<Operand> operands = new ArrayList<>();
 		if (this instanceof ThreeAddressIlocInstruction) {
 			ThreeAddressIlocInstruction i = (ThreeAddressIlocInstruction) this;
@@ -258,7 +258,7 @@ public abstract class IlocInstruction {
 
 	public String expr() {
 		String ret = getOpcode() + " ";
-		for (Operand o : operands())
+		for (Operand o : sources())
 			ret += o.toString() + " ";
 		return ret;
 	}

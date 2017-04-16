@@ -222,7 +222,7 @@ public class Fib {
 	private static ArrayList<Integer> ssaIds(BasicBlock b, Integer j) {
 		ArrayList<Integer> ids = new ArrayList<>();
 		IlocInstruction i = b.instructions.get(j);
-		for (VirtualRegisterOperand vr : i.registerOperands())
+		for (VirtualRegisterOperand vr : i.registerSources())
 			ids.add(vr.getSSAId());
 		if (i.registerDestination() != null)
 			ids.add(i.registerDestination().getSSAId());
