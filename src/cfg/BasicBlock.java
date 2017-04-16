@@ -418,19 +418,19 @@ public class BasicBlock {
 		}
 	}
 
-	private static int availTarget(ArrayList<HashMap<String, Integer>> avails,
-			HashMap<String, Stack<Integer>> nameStacks, IlocInstruction i) {
+	private static boolean availTarget(ArrayList<HashSet<String>> avails, HashMap<String, Stack<Integer>> nameStacks,
+			IlocInstruction i) {
 		for (int j = avails.size() - 1; j >= 0; j--)
-			if (avails.get(j).containsKey(i.expr()))
-				return avails.get(j).get(i.expr());
+			if (avails.get(j).contains(i.expr()))
+				return true;
 		// add expr since we did not find it
-		avails.get(avails.size() - 1).put(i.expr(), nameStacks.get(i.registerDestination().toString()).peek());
-		return -1;
+		avails.get(avails.size() - 1).add(i.expr());
+		return false;
 	}
 
 	public static void optSSA(ArrayList<BasicBlock> blocks) {
 		// Block structured table of available expressions
-		ArrayList<HashMap<String, Integer>> avails = new ArrayList<>();
+		ArrayList<HashSet<String>> avails = new ArrayList<>();
 		// Namestacks
 		HashMap<String, Stack<Integer>> nameStacks = new HashMap<>();
 		HashSet<String> variables = new HashSet<>();
@@ -462,14 +462,14 @@ public class BasicBlock {
 	}
 
 	public static void optRename(BasicBlock block, HashMap<String, Stack<Integer>> nameStacks,
-			ArrayList<HashMap<String, Integer>> avails) {
+			ArrayList<HashSet<String>> avails) {
 
 		for (PhiNode phi : block.phiNodes) {
 			newName(nameStacks, phi.target.toString());
 		}
 
 		// StartBlock
-		avails.add(new HashMap<>());
+		avails.add(new HashSet<>());
 
 		for (IlocInstruction i : block.instructions) {
 			for (VirtualRegisterOperand t : i.registerOperands()) {
@@ -477,9 +477,9 @@ public class BasicBlock {
 				t.setSSAId(nameStacks.get(t.toString()).peek());
 			}
 			if (i.registerDestination() != null) {
-				int target = availTarget(avails, nameStacks, i);
-				if (target != -1) {
-					nameStacks.get(i.registerDestination().toString()).push(target);
+				if (!i.hasSideEffects() && availTarget(avails, nameStacks, i)) {
+					Stack<Integer> ns = nameStacks.get(i.registerDestination().toString());
+					ns.push(ns.peek());
 					i.kill();
 				} else {
 					newName(nameStacks, i.registerDestination().toString());

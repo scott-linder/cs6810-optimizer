@@ -169,8 +169,7 @@ public abstract class IlocInstruction {
 	}
 
 	public void kill() {
-		if (!hasSideEffects())
-			this.dead = true;
+		this.dead = true;
 	}
 
 	public boolean remove() {
@@ -244,8 +243,6 @@ public abstract class IlocInstruction {
 	 */
 	public VirtualRegisterOperand registerDestination() {
 		VirtualRegisterOperand dest = null;
-		if (this instanceof I2iInstruction)
-			return null;
 		if (this instanceof ThreeAddressIlocInstruction) {
 			ThreeAddressIlocInstruction instruction = (ThreeAddressIlocInstruction) this;
 
