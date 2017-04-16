@@ -23,9 +23,8 @@ public final class CodeGenerator {
 	 */
 	public static void main(String[] args) throws java.io.FileNotFoundException, java.io.IOException {
 
-		if (args.length == 0) {
-			System.err.println("No file name specified");
-			System.err.println("Command Syntax: optimizer <file>");
+		if (args.length != 2 || !(args[0].equalsIgnoreCase("-A") || args[0].equalsIgnoreCase("-B"))) {
+			System.err.println("Usage: optimizer <-A|-B> <file>");
 			System.exit(-1);
 		}
 
@@ -40,17 +39,26 @@ public final class CodeGenerator {
 			System.err.println("Invalid iloc file " + fileName + ": " + e.getMessage());
 		}
 
-		for (IlocFrame frame : IlocFrame.findFrames(program)) {
-			ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
-			BasicBlock.constructCFG(blocks);
-			BasicBlock.constructDT(blocks);
-			BasicBlock.analyzeLiveness(blocks);
-			BasicBlock.computeDF(blocks);
-			BasicBlock.insertPhiNodes(blocks);
-			BasicBlock.optSSA(blocks);
-			BasicBlock.unSSA(blocks);
-			BasicBlock.analyzeLiveness(blocks);
-			BasicBlock.removeDeadCode(blocks);
+		if (args[0].equalsIgnoreCase("-A")) {
+			for (IlocFrame frame : IlocFrame.findFrames(program)) {
+				ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+				BasicBlock.constructCFG(blocks);
+				BasicBlock.constructDT(blocks);
+				BasicBlock.analyzeLiveness(blocks);
+				BasicBlock.computeDF(blocks);
+				BasicBlock.insertPhiNodes(blocks);
+				BasicBlock.optSSA(blocks);
+				BasicBlock.unSSA(blocks);
+				BasicBlock.analyzeLiveness(blocks);
+				BasicBlock.removeDeadCode(blocks);
+			}
+		} else /* -B */ {
+			for (IlocFrame frame : IlocFrame.findFrames(program)) {
+				ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+				BasicBlock.constructCFG(blocks);
+				BasicBlock.analyzeLiveness(blocks);
+				BasicBlock.removeDeadCode(blocks);
+			}
 		}
 
 		System.out.println(".data");

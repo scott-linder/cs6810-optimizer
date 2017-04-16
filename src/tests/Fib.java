@@ -193,6 +193,17 @@ public class Fib {
 	}
 
 	@Test
+	public void testRemoveDeadCode() {
+		for (ArrayList<BasicBlock> bs : blocksList) {
+			BasicBlock.constructCFG(bs);
+			BasicBlock.analyzeLiveness(bs);
+			BasicBlock.removeDeadCode(bs);
+		}
+		// There is no dead code in fib.il
+		testSizeOfEachBasicBlock();
+	}
+
+	@Test
 	public void testInsertPhiNodes() {
 		for (ArrayList<BasicBlock> bs : blocksList) {
 			BasicBlock.constructCFG(bs);
