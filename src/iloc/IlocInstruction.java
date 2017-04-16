@@ -223,7 +223,7 @@ public abstract class IlocInstruction {
 
 			Operand source = instruction.getOperand();
 
-			operands.add((VirtualRegisterOperand) source);
+			operands.add(source);
 		} else if (this instanceof IcallInstruction) {
 			IcallInstruction instruction = (IcallInstruction) this;
 
