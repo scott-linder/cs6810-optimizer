@@ -164,22 +164,30 @@ public class Fib {
 
 		assertThat(a0.in, is(none));
 		assertThat(a0.generated, is(none));
-		assertThat(a0.preserved, is(three_thirteen_fourteen));
+		BitSet preserved = (BitSet) all.clone();
+		preserved.andNot(three_thirteen_fourteen);
+		assertThat(a0.preserved, is(preserved));
 		assertThat(a0.out, is(four_to_seven));
 
 		assertThat(a1.in, is(four_to_seven));
 		assertThat(a1.generated, is(four_to_seven));
-		assertThat(a1.preserved, is(three_nine));
+		preserved = (BitSet) all.clone();
+		preserved.andNot(three_nine);
+		assertThat(a1.preserved, is(preserved));
 		assertThat(a1.out, is(four_to_seven));
 
 		assertThat(a2.in, is(none));
 		assertThat(a2.generated, is(none));
-		assertThat(a2.preserved, is(all));
+		preserved = (BitSet) all.clone();
+		preserved.andNot(all);
+		assertThat(a2.preserved, is(preserved));
 		assertThat(a2.out, is(none));
 
 		assertThat(a3.in, is(none));
 		assertThat(a3.generated, is(none));
-		assertThat(a3.preserved, is(all));
+		preserved = (BitSet) all.clone();
+		preserved.andNot(all);
+		assertThat(a3.preserved, is(preserved));
 		assertThat(a3.out, is(none));
 
 	}
