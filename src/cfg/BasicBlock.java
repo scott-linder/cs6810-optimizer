@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Stack;
 import java.util.Vector;
 
 import iloc.IcallInstruction;
@@ -309,10 +310,11 @@ public class BasicBlock {
 		} while (changed);
 
 		// DEBUG
-		for (BasicBlock b : blocks) {
-			System.out.println(blocks.indexOf(b) + ":: in: " + b.in + ", gen: " + b.generated + ", prsv: " + b.preserved
-					+ ", out: " + b.out);
-		}
+		/*
+		 * for (BasicBlock b : blocks) { System.out.println(blocks.indexOf(b) +
+		 * ":: in: " + b.in + ", gen: " + b.generated + ", prsv: " + b.preserved
+		 * + ", out: " + b.out); }
+		 */
 	}
 
 	private static boolean propagate(BasicBlock b, ArrayList<BasicBlock> blocks) {
@@ -410,8 +412,121 @@ public class BasicBlock {
 			for (BasicBlock block : dfplus) {
 				if (block.in.get(t)) {
 					int n = block.predecessors.size();
-					block.phiNodes.add(new PhiNode(new VirtualRegisterOperand(t), n));
+					block.phiNodes.add(new PhiNode(t, n));
 				}
+			}
+		}
+	}
+
+	private static int availTarget(ArrayList<HashMap<String, Integer>> avails,
+			HashMap<String, Stack<Integer>> nameStacks, IlocInstruction i) {
+		for (int j = avails.size() - 1; j >= 0; j--)
+			if (avails.get(j).containsKey(i.expr()))
+				return avails.get(j).get(i.expr());
+		// add expr since we did not find it
+		avails.get(avails.size() - 1).put(i.expr(), nameStacks.get(i.registerDestination().toString()).peek());
+		return -1;
+	}
+
+	public static void optSSA(ArrayList<BasicBlock> blocks) {
+		// Block structured table of available expressions
+		ArrayList<HashMap<String, Integer>> avails = new ArrayList<>();
+		// Namestacks
+		HashMap<String, Stack<Integer>> nameStacks = new HashMap<>();
+		HashSet<String> variables = new HashSet<>();
+		for (BasicBlock block : blocks) {
+			for (IlocInstruction i : block.instructions) {
+				for (VirtualRegisterOperand vr : i.registerOperands()) {
+					variables.add(vr.toString());
+				}
+				if (i.registerDestination() != null) {
+					variables.add(i.registerDestination().toString());
+				}
+			}
+		}
+		for (String vr : variables) {
+			nameStacks.put(vr, new Stack<>());
+			// hack to avoid needing to know what registers the frame defines;
+			// we simply assume all variables have a definition at the entry to
+			// the frame
+			newName(nameStacks, vr);
+		}
+		optRename(blocks.get(0), nameStacks, avails);
+	}
+
+	private static void newName(HashMap<String, Stack<Integer>> nameStacks, String vr) {
+		if (nameStacks.get(vr).isEmpty())
+			nameStacks.get(vr).push(0);
+		else
+			nameStacks.get(vr).push(nameStacks.get(vr).peek() + 1);
+	}
+
+	public static void optRename(BasicBlock block, HashMap<String, Stack<Integer>> nameStacks,
+			ArrayList<HashMap<String, Integer>> avails) {
+
+		for (PhiNode phi : block.phiNodes) {
+			newName(nameStacks, phi.target.toString());
+		}
+
+		// StartBlock
+		avails.add(new HashMap<>());
+
+		for (IlocInstruction i : block.instructions) {
+			for (VirtualRegisterOperand t : i.registerOperands()) {
+				// replace T by top of name stack
+				t.setSSAId(nameStacks.get(t.toString()).peek());
+			}
+			if (i.registerDestination() != null) {
+				int target = availTarget(avails, nameStacks, i);
+				if (target != -1) {
+					nameStacks.get(i.registerDestination().toString()).push(target);
+					i.kill();
+				} else {
+					newName(nameStacks, i.registerDestination().toString());
+				}
+			}
+		}
+
+		for (int i = 0; i < block.successors.size(); i++) {
+			for (PhiNode phi : block.phiNodes) {
+				phi.operands.get(i).setSSAId(nameStacks.get(phi.operands.get(i).toString()).peek());
+			}
+		}
+
+		for (BasicBlock c : block.children) {
+			optRename(c, nameStacks, avails);
+		}
+
+		for (int j = block.instructions.size() - 1; j >= 0; j--) {
+			IlocInstruction i = block.instructions.get(j);
+			if (i.registerDestination() != null) {
+				int x = nameStacks.get(i.registerDestination().toString()).pop();
+				if (i.isDead()) {
+					i.delete();
+				} else {
+					i.registerDestination().setSSAId(x);
+				}
+			}
+		}
+
+		for (PhiNode phi : block.phiNodes) {
+			phi.target.setSSAId(nameStacks.get(phi.target.toString()).pop());
+		}
+
+		// EndBlock
+		avails.remove(avails.size() - 1);
+	}
+
+	/*
+	 * Convert SSA back to normal form by dropping all subscripts.
+	 */
+	public static void unSSA(ArrayList<BasicBlock> blocks) {
+		for (BasicBlock b : blocks) {
+			for (IlocInstruction i : b.instructions) {
+				for (VirtualRegisterOperand vr : i.registerOperands())
+					vr.setSSAId(-1);
+				if (i.registerDestination() != null)
+					i.registerDestination().setSSAId(-1);
 			}
 		}
 	}

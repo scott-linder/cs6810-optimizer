@@ -199,7 +199,23 @@ public class BasicBlockTest {
 		nameBlocks();
 
 		/* TODO: testing */
-		System.out.println(a1.phiNodes.get(0).target);
+		assertThat(true, is(false));
+	}
+
+	@Test
+	public void testOptRename() {
+		for (ArrayList<BasicBlock> bs : blocksList) {
+			BasicBlock.constructCFG(bs);
+			BasicBlock.constructDT(bs);
+			BasicBlock.computeDF(bs);
+			BasicBlock.analyzeLiveness(bs);
+			BasicBlock.insertPhiNodes(bs);
+			BasicBlock.optSSA(bs);
+		}
+
+		nameBlocks();
+
+		/* TODO: testing */
 		assertThat(true, is(false));
 	}
 }

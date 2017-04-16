@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import cfg.BasicBlock;
 import iloc.IlocFrame;
+import iloc.IlocInstruction;
 import iloc.IlocProgram;
 import parser.IlocParser;
 import parser.ParseException;
@@ -47,8 +48,16 @@ public final class CodeGenerator {
 			BasicBlock.analyzeLiveness(blocks);
 			BasicBlock.computeDF(blocks);
 			BasicBlock.insertPhiNodes(blocks);
+			BasicBlock.optSSA(blocks);
+			BasicBlock.unSSA(blocks);
 		}
 
+		System.out.println(".data");
+		for (Object i : program.dataSection.pseudoOps)
+			((IlocInstruction) i).emit();
+		System.out.println(".text");
+		for (IlocInstruction i = program.head; i != null; i = i.getNext())
+			i.emit();
 	}
 
 }

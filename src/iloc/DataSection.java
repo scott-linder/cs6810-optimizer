@@ -1,6 +1,6 @@
 package iloc;
 
-import java.util.*;
+import java.util.Vector;
 
 /**
  * <p>
@@ -23,7 +23,7 @@ import java.util.*;
  * @version 1.0
  */
 public class DataSection {
-	Vector pseudoOps; // the data declaration in an iloc program
+	public Vector pseudoOps; // the data declaration in an iloc program
 
 	/**
 	 * Create a data section

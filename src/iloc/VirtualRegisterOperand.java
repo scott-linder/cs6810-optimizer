@@ -30,7 +30,7 @@ public class VirtualRegisterOperand extends Operand {
 	public static final int FREE_REG = 4; // a free register
 
 	private int registerId; // the register id
-	private int ssaId;
+	private int ssaId = -1;
 
 	/**
 	 * Create a virtual register
@@ -74,6 +74,9 @@ public class VirtualRegisterOperand extends Operand {
 	 * @return String
 	 */
 	public String toString() {
-		return "%vr" + registerId;
+		if (ssaId == -1)
+			return "%vr" + registerId;
+		else
+			return "%vr" + registerId + "_" + ssaId;
 	}
 }

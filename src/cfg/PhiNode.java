@@ -8,11 +8,10 @@ public class PhiNode {
 	public VirtualRegisterOperand target;
 	public ArrayList<VirtualRegisterOperand> operands = new ArrayList<>();
 
-	public PhiNode(VirtualRegisterOperand target, int n) {
-		this.target = target;
+	public PhiNode(int target, int n) {
+		this.target = new VirtualRegisterOperand(target);
 		for (int i = 1; i <= n; i++) {
-			VirtualRegisterOperand operand = target.copy();
-			operand.setSSAId(i);
+			VirtualRegisterOperand operand = this.target.copy();
 			this.operands.add(operand);
 		}
 	}
