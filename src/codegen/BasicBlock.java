@@ -9,17 +9,10 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Stack;
-import java.util.Vector;
 
-import iloc.IcallInstruction;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.LabelOperand;
-import iloc.OneAddressIlocInstruction;
-import iloc.Operand;
-import iloc.StoreInstruction;
-import iloc.ThreeAddressIlocInstruction;
-import iloc.TwoAddressIlocInstruction;
 import iloc.VirtualRegisterOperand;
 
 public class BasicBlock {
@@ -197,106 +190,17 @@ public class BasicBlock {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void analyzeLiveness(ArrayList<BasicBlock> blocks) {
 		for (BasicBlock b : blocks) {
 			for (IlocInstruction i : b.instructions) {
-				if (i instanceof ThreeAddressIlocInstruction) {
-					ThreeAddressIlocInstruction instruction = (ThreeAddressIlocInstruction) i;
-
-					Operand[] sources = { instruction.getLeftOperand(), instruction.getRightOperand() };
-					Operand destination = instruction.getDestination();
-
-					for (Operand source : sources) {
-						if (source instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
-
-							if (b.isPreserved(rval)) {
-								b.generates(rval);
-							}
-						}
+				for (VirtualRegisterOperand rval : i.registerOperands()) {
+					if (b.isPreserved(rval)) {
+						b.generates(rval);
 					}
-
-					if (destination instanceof VirtualRegisterOperand) {
-						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
-
-						b.preserves(lval);
-					}
-
-				} else if (i instanceof TwoAddressIlocInstruction) {
-					TwoAddressIlocInstruction instruction = (TwoAddressIlocInstruction) i;
-
-					Operand source = instruction.getSource();
-					Operand destination = instruction.getDestination();
-
-					if (i instanceof StoreInstruction) {
-						if (source instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
-
-							if (b.isPreserved(rval)) {
-								b.generates(rval);
-							}
-						}
-
-						if (destination instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
-
-							if (b.isPreserved(lval)) {
-								b.generates(lval);
-							}
-						}
-					} else {
-						if (source instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
-
-							if (b.isPreserved(rval)) {
-								b.generates(rval);
-							}
-						}
-
-						if (destination instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
-
-							b.preserves(lval);
-						}
-					}
-
-				} else if (i instanceof OneAddressIlocInstruction) {
-					OneAddressIlocInstruction instruction = (OneAddressIlocInstruction) i;
-
-					Operand source = instruction.getOperand();
-
-					if (source instanceof VirtualRegisterOperand) {
-						VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
-
-						if (b.isPreserved(rval)) {
-							b.generates(rval);
-						}
-					}
-				} else if (i instanceof IcallInstruction) {
-					IcallInstruction instruction = (IcallInstruction) i;
-
-					Vector operands = instruction.getOperands();
-					// GROSS
-					Operand[] sources = (Operand[]) operands.subList(1, operands.size())
-							.toArray(new Operand[operands.size() - 1]);
-					Operand destination = instruction.getReturnRegister();
-
-					for (Operand source : sources) {
-						if (source instanceof VirtualRegisterOperand) {
-							VirtualRegisterOperand rval = (VirtualRegisterOperand) source;
-
-							if (b.isPreserved(rval)) {
-								b.generates(rval);
-							}
-						}
-					}
-
-					if (destination instanceof VirtualRegisterOperand) {
-						VirtualRegisterOperand lval = (VirtualRegisterOperand) destination;
-
-						b.preserves(lval);
-					}
+				}
+				VirtualRegisterOperand lval = i.registerDestination();
+				if (lval != null) {
+					b.preserves(lval);
 				}
 			}
 		}
@@ -308,13 +212,6 @@ public class BasicBlock {
 			}
 			changed = propagate(blocks.get(0), blocks);
 		} while (changed);
-
-		// DEBUG
-		/*
-		 * for (BasicBlock b : blocks) { System.out.println(blocks.indexOf(b) +
-		 * ":: in: " + b.in + ", gen: " + b.generated + ", prsv: " + b.preserved
-		 * + ", out: " + b.out); }
-		 */
 	}
 
 	private static boolean propagate(BasicBlock b, ArrayList<BasicBlock> blocks) {
