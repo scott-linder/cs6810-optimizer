@@ -405,6 +405,11 @@ public class BasicBlock {
 				}
 			}
 		}
+		/*
+		 * instructions do not know what block they are in, so we must
+		 * explicitly remove them when they die
+		 */
+		block.instructions.removeIf(i -> i.isDead());
 
 		for (PhiNode phi : block.phiNodes) {
 			phi.target.setSSAId(nameStacks.get(phi.target.toString()).pop());

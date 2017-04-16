@@ -246,14 +246,12 @@ public class Fib {
 		assertThat(ssaIds(a0, 1), is(new ArrayList<>(Arrays.asList(1, 1))));
 		assertThat(ssaIds(a0, 2), is(new ArrayList<>(Arrays.asList(1))));
 		assertThat(ssaIds(a0, 3), is(new ArrayList<>(Arrays.asList(1, 1))));
-		assertThat(a0.instructions.get(4).isDead(), is(true));
+		assertThat(ssaIds(a0, 4), is(new ArrayList<>(Arrays.asList(1, 1))));
 		assertThat(ssaIds(a0, 5), is(new ArrayList<>(Arrays.asList(1, 1))));
-		assertThat(a0.instructions.get(6).isDead(), is(true));
-		assertThat(ssaIds(a0, 7), is(new ArrayList<>(Arrays.asList(1, 1))));
-		assertThat(ssaIds(a0, 8), is(new ArrayList<>(Arrays.asList(1))));
-		assertThat(ssaIds(a0, 9), is(new ArrayList<>(Arrays.asList(1, 1, 1))));
-		assertThat(ssaIds(a0, 10), is(new ArrayList<>(Arrays.asList(1, 1))));
-		assertThat(ssaIds(a0, 11), is(new ArrayList<>(Arrays.asList(1))));
+		assertThat(ssaIds(a0, 6), is(new ArrayList<>(Arrays.asList(1))));
+		assertThat(ssaIds(a0, 7), is(new ArrayList<>(Arrays.asList(1, 1, 1))));
+		assertThat(ssaIds(a0, 8), is(new ArrayList<>(Arrays.asList(1, 1))));
+		assertThat(ssaIds(a0, 9), is(new ArrayList<>(Arrays.asList(1))));
 
 	}
 }
