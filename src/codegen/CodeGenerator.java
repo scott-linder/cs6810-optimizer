@@ -55,6 +55,8 @@ public final class CodeGenerator {
 		} else /* -B */ {
 			for (IlocFrame frame : IlocFrame.findFrames(program)) {
 				ArrayList<BasicBlock> blocks = BasicBlock.findBasicBlocks(frame);
+				for (BasicBlock b : blocks)
+					BasicBlock.localValueNumbering(b);
 				BasicBlock.constructCFG(blocks);
 				BasicBlock.analyzeLiveness(blocks);
 				BasicBlock.removeDeadCode(blocks);

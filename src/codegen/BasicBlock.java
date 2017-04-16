@@ -10,9 +10,12 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Stack;
 
+import iloc.ConstantOperand;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
+import iloc.ImmediateOperand;
 import iloc.LabelOperand;
+import iloc.LoadIInstruction;
 import iloc.VirtualRegisterOperand;
 
 public class BasicBlock {
@@ -36,6 +39,9 @@ public class BasicBlock {
 
 	// DF
 	public HashSet<BasicBlock> df = new HashSet<>();
+
+	// LVN
+	public static int nextValueNumber;
 
 	private void addEdge(BasicBlock other) {
 		successors.add(other);
@@ -83,6 +89,14 @@ public class BasicBlock {
 
 	public IlocInstruction last() {
 		return instructions.get(instructions.size() - 1);
+	}
+
+	/*
+	 * Instructions do not know what block they are in, so we must explicitly
+	 * remove them when they die.
+	 */
+	public void removeDeadInstructions() {
+		instructions.removeIf(i -> i.isDead());
 	}
 
 	public static BasicBlock findBasicBlockWithLabel(ArrayList<BasicBlock> blocks, String label) {
@@ -268,7 +282,7 @@ public class BasicBlock {
 					i.remove();
 				}
 			}
-			b.instructions.removeIf(i -> i.isDead());
+			b.removeDeadInstructions();
 		}
 	}
 
@@ -436,11 +450,8 @@ public class BasicBlock {
 				}
 			}
 		}
-		/*
-		 * instructions do not know what block they are in, so we must
-		 * explicitly remove them when they die
-		 */
-		block.instructions.removeIf(i -> i.isDead());
+
+		block.removeDeadInstructions();
 
 		for (PhiNode phi : block.phiNodes) {
 			phi.target.setSSAId(nameStacks.get(phi.target.toString()).pop());
@@ -462,5 +473,53 @@ public class BasicBlock {
 					i.registerDestination().setSSAId(-1);
 			}
 		}
+	}
+
+	private static int valnum(HashMap<String, Integer> symbolTable, String name) {
+		if (symbolTable.containsKey(name))
+			return symbolTable.get(name);
+		symbolTable.put(name, nextValueNumber);
+		return nextValueNumber++;
+	}
+
+	private static void setvalnum(HashMap<String, Integer> symbolTable, String name, int valueNumber) {
+		symbolTable.put(name, valueNumber);
+	}
+
+	public static void localValueNumbering(BasicBlock b) {
+		// This is static as a convenience, so valnum behaves as in the notes
+		nextValueNumber = 0;
+		// maps ValueNumber to Value
+		HashMap<Integer, Integer> constantTable = new HashMap<>();
+		// maps Name (%vrX for registers, Y for constants) to ValueNumber (TODO:
+		// needs subsumes/subsumed)
+		HashMap<String, Integer> symbolTable = new HashMap<>();
+		// maps "<r1,op,r2>" to virtual register number (just X for %vrX)
+		HashMap<String, Integer> exprTable = new HashMap<>();
+
+		for (IlocInstruction i : b.instructions) {
+			// We only care about instructions which write to a register
+			VirtualRegisterOperand lval = i.registerDestination();
+			if (lval == null)
+				continue;
+
+			if (i instanceof LoadIInstruction) {
+				ImmediateOperand rvalI = (ImmediateOperand) ((LoadIInstruction) i).getSource();
+				if (rvalI instanceof ConstantOperand) {
+					int value = ((ConstantOperand) rvalI).getValue();
+					int valueNumber = valnum(symbolTable, Integer.toString(value));
+					String expr = String.format("<%d,iLDI,-1>", valueNumber);
+					if (exprTable.containsKey(expr)) {
+						i.kill();
+						i.remove();
+					} else {
+						setvalnum(symbolTable, lval.toString(), valueNumber);
+						constantTable.put(valueNumber, value);
+						exprTable.put(expr, lval.getRegisterId());
+					}
+				}
+			}
+		}
+		b.removeDeadInstructions();
 	}
 }
