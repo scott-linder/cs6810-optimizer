@@ -191,7 +191,13 @@ public class BasicBlock {
 	}
 
 	public static void analyzeLiveness(ArrayList<BasicBlock> blocks) {
+
 		for (BasicBlock b : blocks) {
+			b.generated = new BitSet();
+			b.preserved = new BitSet();
+			b.in = new BitSet();
+			b.out = new BitSet();
+
 			for (IlocInstruction i : b.instructions) {
 				for (VirtualRegisterOperand rval : i.registerSources()) {
 					if (b.isPreserved(rval)) {
@@ -239,6 +245,31 @@ public class BasicBlock {
 			changed = true;
 
 		return changed;
+	}
+
+	public static void removeDeadCode(ArrayList<BasicBlock> blocks) {
+		for (BasicBlock b : blocks) {
+			BitSet live = (BitSet) b.out.clone();
+			for (int j = b.instructions.size() - 1; j >= 0; j--) {
+				IlocInstruction i = b.instructions.get(j);
+				if (i.registerDestination() != null) {
+					int id = i.registerDestination().getRegisterId();
+					if (!live.get(id)) {
+						i.kill();
+					} else {
+						live.clear(id);
+					}
+				}
+				if (!i.isDead()) {
+					for (VirtualRegisterOperand rval : i.registerSources()) {
+						live.set(rval.getRegisterId());
+					}
+				} else {
+					i.remove();
+				}
+			}
+			b.instructions.removeIf(i -> i.isDead());
+		}
 	}
 
 	public static void computeDF(ArrayList<BasicBlock> blocks) {
@@ -399,7 +430,7 @@ public class BasicBlock {
 			if (i.registerDestination() != null) {
 				int x = nameStacks.get(i.registerDestination().toString()).pop();
 				if (i.isDead()) {
-					i.delete();
+					i.remove();
 				} else {
 					i.registerDestination().setSSAId(x);
 				}

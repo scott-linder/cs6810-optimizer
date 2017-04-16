@@ -135,13 +135,6 @@ public abstract class IlocInstruction {
 		return next;
 	}
 
-	public void delete() {
-		if (this.prev != null)
-			this.prev.next = this.next;
-		if (this.next != null)
-			this.next.prev = this.prev;
-	}
-
 	public int size() {
 		int size = 0;
 		for (IlocInstruction i = this; i != null; i = i.getNext())
@@ -226,8 +219,8 @@ public abstract class IlocInstruction {
 		} else if (this instanceof OneAddressIlocInstruction) {
 			OneAddressIlocInstruction i = (OneAddressIlocInstruction) this;
 			operands.add(i.getOperand());
-		} else if (this instanceof IcallInstruction) {
-			IcallInstruction i = (IcallInstruction) this;
+		} else if (this instanceof CallInstruction) {
+			CallInstruction i = (CallInstruction) this;
 			Vector ops = i.getOperands();
 			for (int j = 1; j < ops.size(); j++) {
 				operands.add((Operand) ops.get(j));

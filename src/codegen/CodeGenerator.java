@@ -49,6 +49,8 @@ public final class CodeGenerator {
 			BasicBlock.insertPhiNodes(blocks);
 			BasicBlock.optSSA(blocks);
 			BasicBlock.unSSA(blocks);
+			BasicBlock.analyzeLiveness(blocks);
+			BasicBlock.removeDeadCode(blocks);
 		}
 
 		System.out.println(".data");
