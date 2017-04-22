@@ -489,6 +489,17 @@ public class BasicBlock {
 		symbolTable.put(name, valueNumber);
 	}
 
+	private static void splice(BasicBlock b, IlocInstruction i, LoadIInstruction replacement) {
+		replacement.setLabel(i.getLabel());
+		replacement.setSourceLine(i.getSourceLine());
+		replacement.setInstructionId(i.getInstructionId());
+		replacement.setPrev(i.getPrev());
+		replacement.setNext(i.getNext());
+		b.instructions.set(b.instructions.indexOf(i), replacement);
+		i.getPrev().setNext(replacement);
+		i.getNext().setPrev(replacement);
+	}
+
 	public static void localValueNumbering(BasicBlock b) {
 		// This is static as a convenience, so valnum behaves as in the notes
 		nextValueNumber = 0;
@@ -527,24 +538,18 @@ public class BasicBlock {
 			} else if (i instanceof I2iInstruction) {
 				Operand rvalVR = (Operand) ((I2iInstruction) i).getSource();
 				if (rvalVR instanceof VirtualRegisterOperand) {
-					int value = ((VirtualRegisterOperand) rvalVR).getRegisterId();
-					int valueNumber = valnum(symbolTable, Integer.toString(value));
+					String value = ((VirtualRegisterOperand) rvalVR).toString();
+					int valueNumber = valnum(symbolTable, value);
 					// removeSubsume(lval);
 					if (constantTable.containsKey(valueNumber)) {
-						IlocInstruction changed = new LoadIInstruction(
-								new ConstantOperand(constantTable.get(valueNumber)), lval);
-						changed.setLabel(i.getLabel());
-						changed.setSourceLine(i.getSourceLine());
-						changed.setInstructionId(i.getInstructionId());
-						changed.setPrev(i.getPrev());
-						changed.setNext(i.getNext());
-						b.instructions.set(b.instructions.indexOf(i), changed);
+						splice(b, i, new LoadIInstruction(new ConstantOperand(constantTable.get(valueNumber)), lval));
 					}
 					setvalnum(symbolTable, lval.toString(), valueNumber);
 					// subsume(lval, rvalVR);
 				}
 			} else {
 				if (i instanceof ThreeAddressIlocInstruction) {
+					// TODO: something wrong in here ...
 					int values[] = {
 							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand())
 									.getRegisterId(),
@@ -555,20 +560,15 @@ public class BasicBlock {
 
 					if (constantTable.containsKey(valueNumbers[0]) && constantTable.containsKey(valueNumbers[1])) {
 						for (int j = 0; j < valueNumbers.length; j++) {
-							IlocInstruction changed = new LoadIInstruction(
-									new ConstantOperand(constantTable.get(valueNumbers[j])), lval);
-							changed.setLabel(i.getLabel());
-							changed.setSourceLine(i.getSourceLine());
-							changed.setInstructionId(i.getInstructionId());
-							changed.setPrev(i.getPrev());
-							changed.setNext(i.getNext());
-							b.instructions.set(b.instructions.indexOf(i), changed);
+							splice(b, i, new LoadIInstruction(new ConstantOperand(constantTable.get(valueNumbers[j])),
+									lval));
 							// removeSubsume(lval);
 							setvalnum(symbolTable, lval.toString(), valueNumbers[j]);
+							// TODO: I think values[] should be String type, but
+							// then not sure what do with this method call ...
 							constantTable.put(valueNumbers[j], values[j]);
 							String expr = String.format("<%d,%s,-1>", valueNumbers[j], i.getOpcode());
 							exprTable.put(expr, lval.getRegisterId());
-
 						}
 					} else {
 						String expr = String.format("<%d,%s,%d>", valueNumbers[0], i.getOpcode(), valueNumbers[1]);
@@ -581,9 +581,11 @@ public class BasicBlock {
 							// subsume(lval, lvalT);
 						} else {
 							// propagate constants ???
+							// TODO: same as above call
 							constantTable.put(valueNumbers[0], values[0]);
 							constantTable.put(valueNumbers[1], values[1]);
 							exprTable.put(expr, lval.getRegisterId());
+							// setvalnum(lval, nextValueNumber); ???
 						}
 					}
 				}
