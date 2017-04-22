@@ -500,6 +500,17 @@ public class BasicBlock {
 		i.getNext().setPrev(replacement);
 	}
 
+	private static void splice(BasicBlock b, IlocInstruction i, I2iInstruction replacement) {
+		replacement.setLabel(i.getLabel());
+		replacement.setSourceLine(i.getSourceLine());
+		replacement.setInstructionId(i.getInstructionId());
+		replacement.setPrev(i.getPrev());
+		replacement.setNext(i.getNext());
+		b.instructions.set(b.instructions.indexOf(i), replacement);
+		i.getPrev().setNext(replacement);
+		i.getNext().setPrev(replacement);
+	}
+
 	public static void localValueNumbering(BasicBlock b) {
 		// This is static as a convenience, so valnum behaves as in the notes
 		nextValueNumber = 0;
@@ -549,25 +560,44 @@ public class BasicBlock {
 				}
 			} else {
 				if (i instanceof ThreeAddressIlocInstruction) {
-					// TODO: something wrong in here ...
-					int values[] = {
-							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand())
-									.getRegisterId(),
-							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getRightOperand())
-									.getRegisterId() };
-					int valueNumbers[] = { valnum(symbolTable, Integer.toString(values[0])),
-							valnum(symbolTable, Integer.toString(values[1])) };
+					String values[] = {
+							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand()).toString(),
+							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getRightOperand()).toString() };
+					int valueNumbers[] = { valnum(symbolTable, values[0]), valnum(symbolTable, values[1]) };
 
 					if (constantTable.containsKey(valueNumbers[0]) && constantTable.containsKey(valueNumbers[1])) {
-						for (int j = 0; j < valueNumbers.length; j++) {
-							splice(b, i, new LoadIInstruction(new ConstantOperand(constantTable.get(valueNumbers[j])),
-									lval));
+						int constant[] = { constantTable.get(valueNumbers[0]), constantTable.get(valueNumbers[1]) };
+						Integer v = null;
+
+						// TODO: add more cases?
+						switch (i.getOpcode()) {
+						case "comp":
+							v = constant[1] - constant[0];
+							if (constant[0] == constant[1]) {
+								v = 0;
+							} else if (constant[0] < constant[1]) {
+								v = 1;
+							} else {
+								v = 2;
+							}
+							break;
+						case "add":
+							v = constant[0] + constant[1];
+							break;
+						case "sub":
+							v = constant[0] - constant[1];
+							break;
+						case "mult":
+							v = constant[0] * constant[1];
+							break;
+						}
+
+						if (null != v) {
+							setvalnum(symbolTable, lval.toString(), valnum(symbolTable, v.toString()));
+							splice(b, i, new LoadIInstruction(new ConstantOperand(v), lval));
 							// removeSubsume(lval);
-							setvalnum(symbolTable, lval.toString(), valueNumbers[j]);
-							// TODO: I think values[] should be String type, but
-							// then not sure what do with this method call ...
-							constantTable.put(valueNumbers[j], values[j]);
-							String expr = String.format("<%d,%s,-1>", valueNumbers[j], i.getOpcode());
+							constantTable.put(valnum(symbolTable, v.toString()), v);
+							String expr = String.format("<%d,%s,-1>", valnum(symbolTable, v.toString()), i.getOpcode());
 							exprTable.put(expr, lval.getRegisterId());
 						}
 					} else {
@@ -575,17 +605,14 @@ public class BasicBlock {
 						if (exprTable.containsKey(expr)) {
 							int lvalT = exprTable.get(expr);
 							int v = valnum(symbolTable, Integer.toString(lvalT));
-							// change instruction to I2iInstruction
+							splice(b, i, new I2iInstruction(new VirtualRegisterOperand(lvalT), lval));
 							// removeSubsume(lval);
 							setvalnum(symbolTable, lval.toString(), v);
 							// subsume(lval, lvalT);
 						} else {
-							// propagate constants ???
-							// TODO: same as above call
-							constantTable.put(valueNumbers[0], values[0]);
-							constantTable.put(valueNumbers[1], values[1]);
+							// TODO: propagate constants and fix this condition!
 							exprTable.put(expr, lval.getRegisterId());
-							// setvalnum(lval, nextValueNumber); ???
+							setvalnum(symbolTable, lval.toString(), nextValueNumber++);
 						}
 					}
 				}
