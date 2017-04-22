@@ -11,11 +11,14 @@ import java.util.Queue;
 import java.util.Stack;
 
 import iloc.ConstantOperand;
+import iloc.I2iInstruction;
 import iloc.IlocFrame;
 import iloc.IlocInstruction;
 import iloc.ImmediateOperand;
 import iloc.LabelOperand;
 import iloc.LoadIInstruction;
+import iloc.Operand;
+import iloc.ThreeAddressIlocInstruction;
 import iloc.VirtualRegisterOperand;
 
 public class BasicBlock {
@@ -503,12 +506,14 @@ public class BasicBlock {
 			if (lval == null)
 				continue;
 
+			// applySubsume(i);
+
 			if (i instanceof LoadIInstruction) {
 				ImmediateOperand rvalI = (ImmediateOperand) ((LoadIInstruction) i).getSource();
 				if (rvalI instanceof ConstantOperand) {
 					int value = ((ConstantOperand) rvalI).getValue();
 					int valueNumber = valnum(symbolTable, Integer.toString(value));
-					String expr = String.format("<%d,iLDI,-1>", valueNumber);
+					String expr = String.format("<%d,%s,-1>", valueNumber, i.getOpcode());
 					if (exprTable.containsKey(expr)) {
 						i.kill();
 						i.remove();
@@ -516,10 +521,47 @@ public class BasicBlock {
 						setvalnum(symbolTable, lval.toString(), valueNumber);
 						constantTable.put(valueNumber, value);
 						exprTable.put(expr, lval.getRegisterId());
+						// removeSubsume(lval);
+					}
+				}
+			} else if (i instanceof I2iInstruction) {
+				Operand rvalVR = (Operand) ((I2iInstruction) i).getSource();
+				if (rvalVR instanceof VirtualRegisterOperand) {
+					int value = ((VirtualRegisterOperand) rvalVR).getRegisterId();
+					int valueNumber = valnum(symbolTable, Integer.toString(value));
+					// removeSubsume(lval);
+					// rvalue will never be constant so no need to do this??
+					setvalnum(symbolTable, lval.toString(), valueNumber);
+					// subsume(lval, rvalVR);
+				}
+			} else {
+				if (i instanceof ThreeAddressIlocInstruction) {
+					int r1value = ((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand())
+							.getRegisterId();
+					int r1valueNumber = valnum(symbolTable, Integer.toString(r1value));
+					int r2value = ((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getRightOperand())
+							.getRegisterId();
+					int r2valueNumber = valnum(symbolTable, Integer.toString(r2value));
+					// if both rvalues are constants?? I don't think this can
+					// happen ...
+					String expr = String.format("<%d,%s,%d>", r1valueNumber, i.getOpcode(), r2valueNumber);
+					if (exprTable.containsKey(expr)) {
+						int lvalT = exprTable.get(expr);
+						int v = valnum(symbolTable, Integer.toString(lvalT));
+						// change instruction to I2iInstruction
+						// removeSubsume(lval);
+						setvalnum(symbolTable, lval.toString(), v);
+						// subsume(lval, lvalT);
+					} else {
+						// propagate constants ???
+						constantTable.put(r1valueNumber, r1value);
+						constantTable.put(r2valueNumber, r2value);
+						exprTable.put(expr, lval.getRegisterId());
 					}
 				}
 			}
 		}
+
 		b.removeDeadInstructions();
 	}
 }
