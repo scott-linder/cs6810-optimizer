@@ -489,18 +489,7 @@ public class BasicBlock {
 		symbolTable.put(name, valueNumber);
 	}
 
-	private static void splice(BasicBlock b, IlocInstruction i, LoadIInstruction replacement) {
-		replacement.setLabel(i.getLabel());
-		replacement.setSourceLine(i.getSourceLine());
-		replacement.setInstructionId(i.getInstructionId());
-		replacement.setPrev(i.getPrev());
-		replacement.setNext(i.getNext());
-		b.instructions.set(b.instructions.indexOf(i), replacement);
-		i.getPrev().setNext(replacement);
-		i.getNext().setPrev(replacement);
-	}
-
-	private static void splice(BasicBlock b, IlocInstruction i, I2iInstruction replacement) {
+	private static void splice(BasicBlock b, IlocInstruction i, IlocInstruction replacement) {
 		replacement.setLabel(i.getLabel());
 		replacement.setSourceLine(i.getSourceLine());
 		replacement.setInstructionId(i.getInstructionId());
@@ -572,7 +561,6 @@ public class BasicBlock {
 						// TODO: add more cases?
 						switch (i.getOpcode()) {
 						case "comp":
-							v = constant[1] - constant[0];
 							if (constant[0] == constant[1]) {
 								v = 0;
 							} else if (constant[0] < constant[1]) {
@@ -604,7 +592,7 @@ public class BasicBlock {
 						String expr = String.format("<%d,%s,%d>", valueNumbers[0], i.getOpcode(), valueNumbers[1]);
 						if (exprTable.containsKey(expr)) {
 							int lvalT = exprTable.get(expr);
-							int v = valnum(symbolTable, Integer.toString(lvalT));
+							int v = valnum(symbolTable, "%vr" + Integer.toString(lvalT));
 							splice(b, i, new I2iInstruction(new VirtualRegisterOperand(lvalT), lval));
 							// removeSubsume(lval);
 							setvalnum(symbolTable, lval.toString(), v);
@@ -615,6 +603,8 @@ public class BasicBlock {
 							setvalnum(symbolTable, lval.toString(), nextValueNumber++);
 						}
 					}
+				} else {
+					setvalnum(symbolTable, lval.toString(), nextValueNumber++);
 				}
 			}
 		}
