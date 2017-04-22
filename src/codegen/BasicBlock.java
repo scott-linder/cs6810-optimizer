@@ -530,33 +530,61 @@ public class BasicBlock {
 					int value = ((VirtualRegisterOperand) rvalVR).getRegisterId();
 					int valueNumber = valnum(symbolTable, Integer.toString(value));
 					// removeSubsume(lval);
-					// rvalue will never be constant so no need to do this??
+					if (constantTable.containsKey(valueNumber)) {
+						IlocInstruction changed = new LoadIInstruction(
+								new ConstantOperand(constantTable.get(valueNumber)), lval);
+						changed.setLabel(i.getLabel());
+						changed.setSourceLine(i.getSourceLine());
+						changed.setInstructionId(i.getInstructionId());
+						changed.setPrev(i.getPrev());
+						changed.setNext(i.getNext());
+						b.instructions.set(b.instructions.indexOf(i), changed);
+					}
 					setvalnum(symbolTable, lval.toString(), valueNumber);
 					// subsume(lval, rvalVR);
 				}
 			} else {
 				if (i instanceof ThreeAddressIlocInstruction) {
-					int r1value = ((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand())
-							.getRegisterId();
-					int r1valueNumber = valnum(symbolTable, Integer.toString(r1value));
-					int r2value = ((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getRightOperand())
-							.getRegisterId();
-					int r2valueNumber = valnum(symbolTable, Integer.toString(r2value));
-					// if both rvalues are constants?? I don't think this can
-					// happen ...
-					String expr = String.format("<%d,%s,%d>", r1valueNumber, i.getOpcode(), r2valueNumber);
-					if (exprTable.containsKey(expr)) {
-						int lvalT = exprTable.get(expr);
-						int v = valnum(symbolTable, Integer.toString(lvalT));
-						// change instruction to I2iInstruction
-						// removeSubsume(lval);
-						setvalnum(symbolTable, lval.toString(), v);
-						// subsume(lval, lvalT);
+					int values[] = {
+							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getLeftOperand())
+									.getRegisterId(),
+							((VirtualRegisterOperand) ((ThreeAddressIlocInstruction) i).getRightOperand())
+									.getRegisterId() };
+					int valueNumbers[] = { valnum(symbolTable, Integer.toString(values[0])),
+							valnum(symbolTable, Integer.toString(values[1])) };
+
+					if (constantTable.containsKey(valueNumbers[0]) && constantTable.containsKey(valueNumbers[1])) {
+						for (int j = 0; j < valueNumbers.length; j++) {
+							IlocInstruction changed = new LoadIInstruction(
+									new ConstantOperand(constantTable.get(valueNumbers[j])), lval);
+							changed.setLabel(i.getLabel());
+							changed.setSourceLine(i.getSourceLine());
+							changed.setInstructionId(i.getInstructionId());
+							changed.setPrev(i.getPrev());
+							changed.setNext(i.getNext());
+							b.instructions.set(b.instructions.indexOf(i), changed);
+							// removeSubsume(lval);
+							setvalnum(symbolTable, lval.toString(), valueNumbers[j]);
+							constantTable.put(valueNumbers[j], values[j]);
+							String expr = String.format("<%d,%s,-1>", valueNumbers[j], i.getOpcode());
+							exprTable.put(expr, lval.getRegisterId());
+
+						}
 					} else {
-						// propagate constants ???
-						constantTable.put(r1valueNumber, r1value);
-						constantTable.put(r2valueNumber, r2value);
-						exprTable.put(expr, lval.getRegisterId());
+						String expr = String.format("<%d,%s,%d>", valueNumbers[0], i.getOpcode(), valueNumbers[1]);
+						if (exprTable.containsKey(expr)) {
+							int lvalT = exprTable.get(expr);
+							int v = valnum(symbolTable, Integer.toString(lvalT));
+							// change instruction to I2iInstruction
+							// removeSubsume(lval);
+							setvalnum(symbolTable, lval.toString(), v);
+							// subsume(lval, lvalT);
+						} else {
+							// propagate constants ???
+							constantTable.put(valueNumbers[0], values[0]);
+							constantTable.put(valueNumbers[1], values[1]);
+							exprTable.put(expr, lval.getRegisterId());
+						}
 					}
 				}
 			}
